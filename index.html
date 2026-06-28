@@ -3,132 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 강의 관리</title>
+    <title>내 강의 관리 PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 페이지 1: 로그인 */
-        .login-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 80vh;
-        }
-        .btn-google {
-            background-color: #4285F4;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        /* 공통 버튼 스타일 */
+        button { font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+        .btn-primary { background-color: #4285F4; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
+        .btn-success { background-color: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
+        .btn-danger { background-color: #f44336; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
 
-        /* 페이지 2: 과목 목록 */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e1e4e8;
-        }
-        .subject-card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-        }
-        .progress-text { color: #888; font-size: 14px; font-weight: normal; }
+        /* 헤더 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e1e4e8; }
+        
+        /* 과목 카드 UI */
+        .subject-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .subject-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .subject-title { font-size: 18px; font-weight: bold; cursor: pointer; color: #1a73e8; }
+        .subject-title:hover { text-decoration: underline; }
+        .edit-btn { background: #eee; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        
+        /* 진도 상태 박스 */
+        .status-box { background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; }
+        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .traffic-light { font-size: 16px; margin-right: 5px; }
+        
+        /* 프로그레스 바 */
+        .progress-bar-bg { background: #e1e4e8; height: 10px; border-radius: 5px; width: 100%; overflow: hidden; margin-top: 5px; }
+        .progress-bar-fill { background: #4CAF50; height: 100%; transition: width 0.3s; }
 
-        /* 페이지 3: 강의 체크 다단 그리드 */
-        .back-btn {
-            background: #e1e4e8;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .lecture-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 10px;
-        }
-        .lecture-box {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px 0;
-            text-align: center;
-            cursor: pointer;
-            user-select: none;
-            font-size: 14px;
-        }
-        .lecture-box.checked {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-            font-weight: bold;
-        }
+        /* 강의 체크 그리드 */
+        .back-btn { background: #e1e4e8; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+        .lecture-box { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px 0; text-align: center; cursor: pointer; user-select: none; font-size: 14px; font-weight: bold; }
+        .lecture-box.checked { background: #4CAF50; color: white; border-color: #4CAF50; box-shadow: 0 2px 5px rgba(76,175,80,0.4); }
+
+        /* 모달 (설정창) 달력 포함 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="page-login" class="page active">
-        <div class="login-wrapper">
-            <h2 style="margin-bottom: 30px;">강의 진도 체크</h2>
-            <button class="btn-google" id="login-btn">Google 계정으로 시작하기</button>
-        </div>
+    <div id="page-login" class="page active" style="text-align:center; padding-top: 100px;">
+        <h2>목표 달성 강의실</h2>
+        <p style="color:#666; margin-bottom:30px;">매일매일 꾸준하게 진도를 체크하세요.</p>
+        <button class="btn-primary" id="login-btn">Google 계정으로 시작하기</button>
     </div>
 
     <div id="page-subjects" class="page">
         <div class="header">
-            <h2 id="user-greeting" style="margin: 0;">내 강의실</h2>
-            <button id="logout-btn" style="border:none; background:transparent; color:#888; cursor:pointer;">로그아웃</button>
+            <h2 style="margin: 0;">내 강의실</h2>
+            <div>
+                <button class="btn-primary" id="add-course-btn" style="padding: 8px 12px; font-size: 13px; margin-right: 5px;">+ 새 강의 추가</button>
+                <button id="logout-btn" style="border:none; background:transparent; color:#888; cursor:pointer;">로그아웃</button>
+            </div>
         </div>
         <div id="subject-list"></div>
     </div>
 
     <div id="page-lectures" class="page">
-        <button class="back-btn" id="back-btn">⬅ 과목 목록으로</button>
+        <button class="back-btn" id="back-btn">⬅ 목록으로</button>
         <h3 id="current-subject-title" style="margin-bottom: 20px;">과목명</h3>
         <div class="lecture-grid" id="lecture-grid"></div>
     </div>
 </div>
 
+<div class="modal-overlay" id="course-modal">
+    <div class="modal-content">
+        <h3 id="modal-title" style="margin-top:0;">강의 설정</h3>
+        <input type="hidden" id="modal-course-id">
+        <div class="form-group">
+            <label>강의명</label>
+            <input type="text" id="input-title" placeholder="예: 환경공학 이론 (수질)">
+        </div>
+        <div class="form-group">
+            <label>총 강의 수 (개)</label>
+            <input type="number" id="input-total" placeholder="예: 75">
+        </div>
+        <div class="form-group">
+            <label>시작 목표일 (달력)</label>
+            <input type="date" id="input-start">
+        </div>
+        <div class="form-group">
+            <label>완강 목표일 (달력)</label>
+            <input type="date" id="input-end">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger" id="modal-delete-btn" style="display:none;">삭제</button>
+            <div style="margin-left: auto;">
+                <button class="btn-primary" id="modal-cancel-btn" style="background:#888;">취소</button>
+                <button class="btn-success" id="modal-save-btn">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="module">
-    // 안정적인 10.9.0 버전으로 모듈 일괄 로드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-    // 🔴 새로 발급받으신 프로젝트 설정 완벽 적용
+    // 🔴 회원님의 고유 파이어베이스 설정
     const firebaseConfig = {
         apiKey: "AIzaSyACDKJoKYR8nusUBeqUtm1kFCHtDJwZLFc",
         authDomain: "lectures-app-v.firebaseapp.com",
@@ -142,31 +128,35 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const courseData = {
-        "환경공학 이론완성 (수질)": 75,
-        "환경공학 이론완성 (대기)": 41,
-        "환경공학 이론완성 (소음진동 및 폐기물)": 33,
-        "화학 이론완성": 39,
-        "배수진 화학 기초완성": 36
-    };
-
     let currentUser = null;
-    let currentSelectedSubject = "";
-    let userProgressData = {};
+    let userData = { courses: {} };
+    let currentSelectedCourseId = "";
 
+    // DOM 요소
+    const pageLogin = document.getElementById('page-login');
+    const pageSubjects = document.getElementById('page-subjects');
+    const pageLectures = document.getElementById('page-lectures');
     const subjectListEl = document.getElementById('subject-list');
-    const lectureGridEl = document.getElementById('lecture-grid');
-    const subjectTitleEl = document.getElementById('current-subject-title');
+    
+    // 모달 요소
+    const modal = document.getElementById('course-modal');
+    const inputTitle = document.getElementById('input-title');
+    const inputTotal = document.getElementById('input-total');
+    const inputStart = document.getElementById('input-start');
+    const inputEnd = document.getElementById('input-end');
+    const modalId = document.getElementById('modal-course-id');
+    const btnDelete = document.getElementById('modal-delete-btn');
 
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
     }
 
+    // 인증 리스너
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
-            await fetchUserData();
+            await loadData();
             renderSubjects();
             showPage('page-subjects');
         } else {
@@ -181,54 +171,222 @@
 
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
+    // 데이터 로드 및 마이그레이션 (기존 데이터 구조 대비)
+    async function loadData() {
+        const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+        if (docSnap.exists()) {
+            let data = docSnap.data();
+            if (!data.courses) {
+                // 이전 버전 데이터가 있다면 새 구조(courses)로 감싸기
+                userData = { courses: {} };
+                for (let key in data) {
+                    userData.courses[key] = {
+                        title: key,
+                        total: 50, // 임시값, 유저가 수정 가능
+                        start: getTodayStr(),
+                        end: getTodayStr(30),
+                        progress: data[key]
+                    };
+                }
+            } else {
+                userData = data;
+            }
+        } else {
+            userData = { courses: {} };
+        }
+    }
+
+    async function saveData() {
+        await setDoc(doc(db, "users", currentUser.uid), userData);
+        renderSubjects();
+    }
+
+    // 날짜 헬퍼 함수
+    function getTodayStr(addDays = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + addDays);
+        return d.toISOString().split('T')[0];
+    }
+    
+    function parseDate(dateStr) { return new Date(dateStr); }
+
+    // 메인 리스트 렌더링 (핵심 로직 포함)
+    function renderSubjects() {
+        subjectListEl.innerHTML = '';
+        
+        if(Object.keys(userData.courses).length === 0) {
+            subjectListEl.innerHTML = '<p style="text-align:center; color:#888; margin-top:50px;">등록된 강의가 없습니다.<br>우측 상단의 [새 강의 추가]를 눌러보세요.</p>';
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0,0,0,0); // 시간 무시
+
+        for (const [courseId, course] of Object.entries(userData.courses)) {
+            const totalLectures = parseInt(course.total) || 1;
+            const completedCount = Object.values(course.progress || {}).filter(v => v === true).length;
+            const progressRate = Math.round((completedCount / totalLectures) * 100);
+
+            // 날짜 및 권장량 계산 로직
+            const startD = parseDate(course.start);
+            const endD = parseDate(course.end);
+            
+            let statusText = "";
+            let trafficLight = "🟢"; // 기본 안전
+            let requiredPerDay = 0;
+
+            const totalDays = Math.max(1, (endD - startD) / (1000 * 60 * 60 * 24));
+            requiredPerDay = (totalLectures / totalDays).toFixed(1);
+
+            const daysPassed = (today - startD) / (1000 * 60 * 60 * 24);
+            const targetLecturesAsOfToday = Math.max(0, Math.min(totalLectures, Math.floor(daysPassed * requiredPerDay)));
+
+            if (today < startD) {
+                statusText = "아직 시작일 전입니다.";
+                trafficLight = "⚪";
+            } else if (today > endD && completedCount < totalLectures) {
+                statusText = "목표 기간이 지났습니다! 서두르세요.";
+                trafficLight = "🔴";
+            } else {
+                statusText = `목표 달성을 위해 <b>하루 ${requiredPerDay}강</b> 권장`;
+                if (completedCount >= targetLecturesAsOfToday) {
+                    trafficLight = "🟢"; // 순항
+                } else if (targetLecturesAsOfToday - completedCount <= 2) {
+                    trafficLight = "🟡"; // 약간 지연 (2강 이하 차이)
+                } else {
+                    trafficLight = "🔴"; // 위험 (많이 밀림)
+                }
+            }
+
+            if(completedCount >= totalLectures) {
+                statusText = "🎉 완강을 축하합니다!";
+                trafficLight = "🏆";
+            }
+
+            const card = document.createElement('div');
+            card.className = 'subject-card';
+            card.innerHTML = `
+                <div class="subject-header">
+                    <div class="subject-title" onclick="openLectures('${courseId}')">${course.title}</div>
+                    <button class="edit-btn" onclick="openModal('${courseId}')">⚙️ 설정수정</button>
+                </div>
+                <div class="status-box">
+                    <div class="status-row">
+                        <span>진도율: <b>${progressRate}%</b> (${completedCount}/${totalLectures}강)</span>
+                        <span>${course.start} ~ ${course.end}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${progressRate}%"></div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 13px; color: #555;">
+                        <span class="traffic-light">${trafficLight}</span> ${statusText}
+                    </div>
+                </div>
+                <button class="btn-success" style="width:100%; padding:10px;" onclick="openLectures('${courseId}')">강의 체크하러 가기</button>
+            `;
+            subjectListEl.appendChild(card);
+        }
+    }
+
+    // 전역 함수로 등록 (onclick 작동을 위해)
+    window.openModal = function(courseId = "") {
+        modal.style.display = "flex";
+        if (courseId && userData.courses[courseId]) {
+            const c = userData.courses[courseId];
+            document.getElementById('modal-title').textContent = "강의 수정";
+            modalId.value = courseId;
+            inputTitle.value = c.title;
+            inputTotal.value = c.total;
+            inputStart.value = c.start;
+            inputEnd.value = c.end;
+            btnDelete.style.display = "block";
+        } else {
+            document.getElementById('modal-title').textContent = "새 강의 추가";
+            modalId.value = "";
+            inputTitle.value = "";
+            inputTotal.value = "";
+            inputStart.value = getTodayStr();
+            inputEnd.value = getTodayStr(30);
+            btnDelete.style.display = "none";
+        }
+    };
+
+    document.getElementById('add-course-btn').addEventListener('click', () => openModal());
+    document.getElementById('modal-cancel-btn').addEventListener('click', () => modal.style.display = "none");
+
+    document.getElementById('modal-save-btn').addEventListener('click', async () => {
+        const title = inputTitle.value.trim();
+        const total = parseInt(inputTotal.value);
+        const start = inputStart.value;
+        const end = inputEnd.value;
+
+        if (!title || !total || !start || !end) {
+            alert("모든 항목을 입력해 주세요.");
+            return;
+        }
+        if (new Date(start) > new Date(end)) {
+            alert("완강 목표일이 시작일보다 빠를 수 없습니다.");
+            return;
+        }
+
+        let id = modalId.value;
+        if (!id) {
+            id = "course_" + Date.now(); // 새 과목 고유 ID 생성
+            userData.courses[id] = { progress: {} };
+        }
+
+        userData.courses[id].title = title;
+        userData.courses[id].total = total;
+        userData.courses[id].start = start;
+        userData.courses[id].end = end;
+        
+        modal.style.display = "none";
+        await saveData();
+    });
+
+    document.getElementById('modal-delete-btn').addEventListener('click', async () => {
+        if(confirm("정말 이 강의를 삭제하시겠습니까? (체크 기록도 모두 사라집니다)")) {
+            delete userData.courses[modalId.value];
+            modal.style.display = "none";
+            await saveData();
+        }
+    });
+
+    // 강의 상세 체크 화면
+    window.openLectures = function(courseId) {
+        currentSelectedCourseId = courseId;
+        const course = userData.courses[courseId];
+        document.getElementById('current-subject-title').textContent = course.title;
+        
+        const grid = document.getElementById('lecture-grid');
+        grid.innerHTML = '';
+
+        for (let i = 1; i <= course.total; i++) {
+            const box = document.createElement('div');
+            box.className = 'lecture-box';
+            if (course.progress && course.progress[i]) box.classList.add('checked');
+            box.textContent = `${i}강`;
+            box.onclick = () => toggleLecture(i, box);
+            grid.appendChild(box);
+        }
+        showPage('page-lectures');
+    };
+
     document.getElementById('back-btn').addEventListener('click', () => {
         renderSubjects();
         showPage('page-subjects');
     });
 
-    async function fetchUserData() {
-        const docSnap = await getDoc(doc(db, "users", currentUser.uid));
-        userProgressData = docSnap.exists() ? docSnap.data() : {};
-    }
-
-    function renderSubjects() {
-        subjectListEl.innerHTML = '';
-        for (const [subjectName, totalLectures] of Object.entries(courseData)) {
-            const completedCount = Object.values(userProgressData[subjectName] || {}).filter(v => v === true).length;
-            const card = document.createElement('div');
-            card.className = 'subject-card';
-            card.innerHTML = `<span>${subjectName}</span><span class="progress-text">${completedCount} / ${totalLectures}강</span>`;
-            card.onclick = () => openLecturePage(subjectName, totalLectures);
-            subjectListEl.appendChild(card);
-        }
-    }
-
-    function openLecturePage(subjectName, totalLectures) {
-        currentSelectedSubject = subjectName;
-        subjectTitleEl.textContent = subjectName;
-        lectureGridEl.innerHTML = '';
-
-        const subjectProgress = userProgressData[subjectName] || {};
-        for (let i = 1; i <= totalLectures; i++) {
-            const box = document.createElement('div');
-            box.className = 'lecture-box';
-            if (subjectProgress[i]) box.classList.add('checked');
-            box.textContent = `${i}강`;
-            box.onclick = () => toggleLecture(i, box);
-            lectureGridEl.appendChild(box);
-        }
-        showPage('page-lectures');
-    }
-
     async function toggleLecture(lectureNum, boxElement) {
         const isChecked = boxElement.classList.toggle('checked');
-        if (!userProgressData[currentSelectedSubject]) userProgressData[currentSelectedSubject] = {};
-        userProgressData[currentSelectedSubject][lectureNum] = isChecked;
+        const course = userData.courses[currentSelectedCourseId];
+        if (!course.progress) course.progress = {};
+        course.progress[lectureNum] = isChecked;
         
         try {
-            await setDoc(doc(db, "users", currentUser.uid), userProgressData);
+            await setDoc(doc(db, "users", currentUser.uid), userData);
         } catch (error) {
-            console.error("저장 실패 (규칙 설정 확인 필요):", error);
+            console.error("저장 실패:", error);
         }
     }
 </script>
