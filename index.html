@@ -3,108 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 강의 관리 PRO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <title>나만의 플래너</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 15px; }
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 공통 버튼 스타일 */
-        button { font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
-        .btn-primary { background-color: #4285F4; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
-        .btn-success { background-color: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
-        .btn-danger { background-color: #f44336; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; }
-
-        /* 헤더 */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e1e4e8; }
+        /* 공통 UI */
+        button { font-family: inherit; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
+        .btn-primary { background-color: #4285F4; color: white; padding: 12px 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* 과목 카드 UI */
-        .subject-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
-        .subject-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .subject-title { font-size: 18px; font-weight: bold; cursor: pointer; color: #1a73e8; }
-        .subject-title:hover { text-decoration: underline; }
-        .edit-btn { background: #eee; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-        
-        /* 진도 상태 박스 */
-        .status-box { background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; }
-        .status-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .traffic-light { font-size: 16px; margin-right: 5px; }
-        
-        /* 프로그레스 바 */
-        .progress-bar-bg { background: #e1e4e8; height: 10px; border-radius: 5px; width: 100%; overflow: hidden; margin-top: 5px; }
-        .progress-bar-fill { background: #4CAF50; height: 100%; transition: width 0.3s; }
+        /* 상단 헤더 (날짜, 디데이, 총 공부시간) */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .date-picker { font-size: 18px; font-weight: bold; border: none; background: transparent; color: #333; }
+        .total-time-box { background: #e8f0fe; color: #1a73e8; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+        .dday-group { display: flex; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .dday-group input[type="text"] { border: 1px solid #ddd; padding: 8px; border-radius: 6px; width: 120px; }
+        .dday-group input[type="date"] { border: 1px solid #ddd; padding: 8px; border-radius: 6px; }
+        .dday-result { font-weight: bold; color: #e53935; width: 60px; text-align: center; }
 
-        /* 강의 체크 그리드 */
-        .back-btn { background: #e1e4e8; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
-        .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
-        .lecture-box { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px 0; text-align: center; cursor: pointer; user-select: none; font-size: 14px; font-weight: bold; }
-        .lecture-box.checked { background: #4CAF50; color: white; border-color: #4CAF50; box-shadow: 0 2px 5px rgba(76,175,80,0.4); }
+        /* 다짐/일기 칸 */
+        .diary-box textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; box-sizing: border-box; resize: vertical; min-height: 80px; font-family: inherit; margin-top: 10px; }
 
-        /* 모달 (설정창) 달력 포함 */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
-        .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+        /* 체크리스트 (레이아웃 2) */
+        .task-header { display: grid; grid-template-columns: 40px 1fr 80px 40px 40px; gap: 10px; font-size: 12px; color: #888; text-align: center; margin-bottom: 10px; padding: 0 5px; }
+        .task-row { display: grid; grid-template-columns: 40px 1fr 80px 40px 40px; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .task-color { width: 35px; height: 35px; border: none; border-radius: 50%; cursor: pointer; padding: 0; background: transparent; }
+        .task-color::-webkit-color-swatch-wrapper { padding: 0; }
+        .task-color::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: 0 0 2px rgba(0,0,0,0.2); }
+        .task-input { border: 1px solid #eee; border-radius: 6px; padding: 10px; font-size: 14px; background: #fafafa; }
+        .task-input:focus { border-color: #4285F4; outline: none; background: white; }
+        .task-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #4CAF50; }
+        .btn-delete { background: #ffebee; color: #e53935; padding: 10px; font-size: 12px; }
+        .btn-add-task { width: 100%; background: #f8f9fa; color: #555; padding: 12px; margin-top: 10px; border: 1px dashed #ccc; }
+
+        /* 타임 트래커 (레이아웃 1) */
+        .tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .current-color-indicator { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+        .color-circle { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd; }
+        
+        .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; }
+        .tracker-row { display: flex; border-bottom: 1px solid #eee; height: 30px; }
+        .hour-label { width: 40px; display: flex; justify-content: center; align-items: center; font-size: 11px; color: #888; border-right: 1px solid #eee; background: #fafafa; }
+        .time-cell { flex: 1; border-right: 1px solid #eee; cursor: pointer; transition: background 0.1s; }
+        .time-cell:nth-child(even) { border-right: 1px dashed #eee; } /* 10분 단위 점선 구분을 위해 */
+        
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="page-login" class="page active" style="text-align:center; padding-top: 100px;">
-        <h2>목표 달성 강의실</h2>
-        <p style="color:#666; margin-bottom:30px;">매일매일 꾸준하게 진도를 체크하세요.</p>
+    <div id="page-login" class="page active" style="text-align:center; padding-top: 120px;">
+        <h2>나만의 스마트 플래너</h2>
+        <p style="color:#666; margin-bottom:30px;">모트모트 감성 그대로, 태블릿에 담았습니다.</p>
         <button class="btn-primary" id="login-btn">Google 계정으로 시작하기</button>
+        <p id="login-error" style="color:red; margin-top:20px; font-size:14px;"></p>
     </div>
 
-    <div id="page-subjects" class="page">
-        <div class="header">
-            <h2 style="margin: 0;">내 강의실</h2>
-            <div>
-                <button class="btn-primary" id="add-course-btn" style="padding: 8px 12px; font-size: 13px; margin-right: 5px;">+ 새 강의 추가</button>
-                <button id="logout-btn" style="border:none; background:transparent; color:#888; cursor:pointer;">로그아웃</button>
+    <div id="page-planner" class="page">
+        
+        <div class="card">
+            <div class="header-top">
+                <input type="date" id="date-picker" class="date-picker">
+                <div class="total-time-box">총 <span id="display-total-time">0H 00M</span></div>
+                <button id="logout-btn" style="background:transparent; color:#888; font-size:12px;">로그아웃</button>
+            </div>
+            
+            <div class="dday-group">
+                <span style="font-size:13px; font-weight:bold; color:#555;">D-Day</span>
+                <input type="text" id="dday-title" placeholder="목표 이름 (예: 기사시험)">
+                <input type="date" id="dday-date">
+                <div class="dday-result" id="dday-result">D-0</div>
             </div>
         </div>
-        <div id="subject-list"></div>
-    </div>
 
-    <div id="page-lectures" class="page">
-        <button class="back-btn" id="back-btn">⬅ 목록으로</button>
-        <h3 id="current-subject-title" style="margin-bottom: 20px;">과목명</h3>
-        <div class="lecture-grid" id="lecture-grid"></div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="course-modal">
-    <div class="modal-content">
-        <h3 id="modal-title" style="margin-top:0;">강의 설정</h3>
-        <input type="hidden" id="modal-course-id">
-        <div class="form-group">
-            <label>강의명</label>
-            <input type="text" id="input-title" placeholder="예: 환경공학 이론 (수질)">
-        </div>
-        <div class="form-group">
-            <label>총 강의 수 (개)</label>
-            <input type="number" id="input-total" placeholder="예: 75">
-        </div>
-        <div class="form-group">
-            <label>시작 목표일 (달력)</label>
-            <input type="date" id="input-start">
-        </div>
-        <div class="form-group">
-            <label>완강 목표일 (달력)</label>
-            <input type="date" id="input-end">
-        </div>
-        <div class="modal-actions">
-            <button class="btn-danger" id="modal-delete-btn" style="display:none;">삭제</button>
-            <div style="margin-left: auto;">
-                <button class="btn-primary" id="modal-cancel-btn" style="background:#888;">취소</button>
-                <button class="btn-success" id="modal-save-btn">저장</button>
+        <div class="card">
+            <h3 style="margin-top:0; margin-bottom: 15px; font-size:16px;">📚 오늘의 과목 및 할 일</h3>
+            <div class="task-header">
+                <div>색상</div><div>과목명 (할 일)</div><div>소요시간(분)</div><div>완료</div><div>삭제</div>
             </div>
+            <div id="task-list"></div>
+            <button class="btn-add-task" id="add-task-btn">+ 과목 추가하기</button>
+        </div>
+
+        <div class="card">
+            <div class="tracker-header">
+                <h3 style="margin:0; font-size:16px;">⏱️ 10분 타임 트래커</h3>
+                <div class="current-color-indicator">
+                    선택된 색상: <div class="color-circle" id="current-color-show" style="background: #ccc;"></div>
+                    <input type="color" id="tracker-color-picker" style="opacity: 0; width: 0; padding: 0;">
+                </div>
+            </div>
+            <p style="font-size:11px; color:#888; margin-top:0;">위 과목 리스트의 '색상 동그라미'를 누르면 해당 색상으로 칠할 수 있습니다.</p>
+            
+            <div class="tracker-grid" id="tracker-grid"></div>
+        </div>
+
+        <div class="card diary-box">
+            <h3 style="margin-top:0; font-size:16px;">✏️ 오늘의 다짐 및 일기</h3>
+            <textarea id="diary-text" placeholder="오늘 하루는 어땠나요? 내일을 위한 다짐을 적어보세요."></textarea>
         </div>
     </div>
 </div>
@@ -128,271 +129,257 @@
     const db = getFirestore(app);
 
     let currentUser = null;
-    let userData = { courses: {} };
-    let currentSelectedCourseId = "";
+    let selectedDate = getLocalTodayStr();
+    let dailyData = getDefaultData();
+    let currentDrawingColor = "#4285F4"; // 트래커 기본 그리기 색상
+    let saveTimeout = null; // 자동 저장 디바운싱용
 
-    const pageLogin = document.getElementById('page-login');
-    const pageSubjects = document.getElementById('page-subjects');
-    const pageLectures = document.getElementById('page-lectures');
-    const subjectListEl = document.getElementById('subject-list');
-    
-    const modal = document.getElementById('course-modal');
-    const inputTitle = document.getElementById('input-title');
-    const inputTotal = document.getElementById('input-total');
-    const inputStart = document.getElementById('input-start');
-    const inputEnd = document.getElementById('input-end');
-    const modalId = document.getElementById('modal-course-id');
-    const btnDelete = document.getElementById('modal-delete-btn');
-
-    function showPage(pageId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            await loadData();
-            renderSubjects();
-            showPage('page-subjects');
-        } else {
-            currentUser = null;
-            showPage('page-login');
-        }
-    });
-
-    document.getElementById('login-btn').addEventListener('click', () => {
-        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("로그인 실패: " + err.message));
-    });
-    document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
-
-    // 시차 오류를 방지하는 날짜 함수들
-    function getLocalTodayDateStr(addDays = 0) {
-        const d = new Date();
-        d.setDate(d.getDate() + addDays);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    function parseLocalMidnight(dateStr) {
-        const [y, m, d] = dateStr.split('-');
-        return new Date(y, m - 1, d, 0, 0, 0, 0); // 무조건 로컬 시간 기준 자정
-    }
-
-    async function loadData() {
-        const docSnap = await getDoc(doc(db, "users", currentUser.uid));
-        if (docSnap.exists() && docSnap.data().courses) {
-            userData = docSnap.data();
-            
-            // 데이터는 있지만 코스가 텅 비어있을 경우에만 CSV 기본값 세팅
-            if (Object.keys(userData.courses).length === 0) {
-                initDefaultCourses();
-                await saveData();
-            }
-        } else {
-            // 아예 첫 방문일 때 CSV 기반 기본 과목 자동 세팅 (여유롭게 60일 기간)
-            userData = { courses: {} };
-            initDefaultCourses();
-            await saveData();
-        }
-    }
-    
-    function initDefaultCourses() {
-        userData.courses = {
-            "csv_1": { title: "환경공학 이론완성 (수질)", total: 75, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
-            "csv_2": { title: "환경공학 이론완성 (대기)", total: 41, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
-            "csv_3": { title: "환경공학 이론완성 (소음진동 및 폐기물)", total: 33, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
-            "csv_4": { title: "화학 이론완성", total: 39, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
-            "csv_5": { title: "배수진 화학 기초완성", total: 36, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} }
+    // 기본 데이터 구조
+    function getDefaultData() {
+        return {
+            ddayTitle: "",
+            ddayDate: "",
+            diary: "",
+            tasks: [],
+            tracker: {} // "06-0": "#ff0000", "06-1": "#ff0000" 형태
         };
     }
 
-    async function saveData() {
-        await setDoc(doc(db, "users", currentUser.uid), userData);
-        renderSubjects();
+    // 날짜 헬퍼
+    function getLocalTodayStr() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    function renderSubjects() {
-        subjectListEl.innerHTML = '';
-        
-        if(Object.keys(userData.courses).length === 0) {
-            subjectListEl.innerHTML = '<p style="text-align:center; color:#888; margin-top:50px;">등록된 강의가 없습니다.<br>우측 상단의 [새 강의 추가]를 눌러보세요.</p>';
-            return;
-        }
-
-        // 오늘의 정확한 로컬 자정 시간 구하기
-        const todayStr = getLocalTodayDateStr();
-        const todayD = parseLocalMidnight(todayStr);
-
-        for (const [courseId, course] of Object.entries(userData.courses)) {
-            const totalLectures = parseInt(course.total) || 1;
-            const completedCount = Object.values(course.progress || {}).filter(v => v === true).length;
-            const progressRate = Math.round((completedCount / totalLectures) * 100);
-
-            const startD = parseLocalMidnight(course.start);
-            const endD = parseLocalMidnight(course.end);
-            
-            let statusText = "";
-            let trafficLight = "🟢"; 
-            
-            const totalDays = Math.max(1, (endD - startD) / (1000 * 60 * 60 * 24) + 1); // 시작일 포함 총 일수
-            const requiredPerDay = (totalLectures / totalDays).toFixed(1);
-
-            // 오늘이 과정 중 며칠 차인지 계산 (시작 당일이면 1일 차)
-            const currentDay = Math.floor((todayD - startD) / (1000 * 60 * 60 * 24)) + 1;
-
-            if (todayD < startD) {
-                statusText = "아직 시작일 전입니다.";
-                trafficLight = "⚪";
-            } else if (todayD > endD && completedCount < totalLectures) {
-                statusText = "목표 기간이 지났습니다! 서두르세요.";
-                trafficLight = "🔴";
-            } else {
-                statusText = `목표 달성을 위해 <b>하루 ${requiredPerDay}강</b> 권장`;
-                
-                // 오늘까지 달성해야 하는 목표 누적 강의 수
-                const targetLecturesAsOfToday = Math.max(0, Math.min(totalLectures, Math.floor(currentDay * requiredPerDay)));
-
-                if (completedCount >= targetLecturesAsOfToday) {
-                    trafficLight = "🟢"; // 목표치 이상 수강
-                } else if (targetLecturesAsOfToday - completedCount <= 2) {
-                    trafficLight = "🟡"; // 1~2강 정도 밀림
-                } else {
-                    trafficLight = "🔴"; // 많이 밀림
-                }
+    // --- 인증 로직 (무한 튕김 방지 및 에러 표시 강화) ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            try {
+                // 로그인 성공 후 데이터 로드 시도
+                await loadDailyData();
+                document.getElementById('date-picker').value = selectedDate;
+                buildTrackerGrid();
+                renderAll();
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('page-planner').classList.add('active');
+            } catch (error) {
+                console.error(error);
+                document.getElementById('login-error').innerText = "DB 접근 에러: Firestore 규칙(Rules)이 잠겨있습니다!";
+                signOut(auth); // 규칙 에러 시 무한 튕김 방지를 위해 강제 로그아웃
             }
-
-            if(completedCount >= totalLectures) {
-                statusText = "🎉 완강을 축하합니다!";
-                trafficLight = "🏆";
-            }
-
-            const card = document.createElement('div');
-            card.className = 'subject-card';
-            card.innerHTML = `
-                <div class="subject-header">
-                    <div class="subject-title" onclick="openLectures('${courseId}')">${course.title}</div>
-                    <button class="edit-btn" onclick="openModal('${courseId}')">⚙️ 설정수정</button>
-                </div>
-                <div class="status-box">
-                    <div class="status-row">
-                        <span>진도율: <b>${progressRate}%</b> (${completedCount}/${totalLectures}강)</span>
-                        <span>${course.start} ~ ${course.end}</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: ${progressRate}%"></div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 13px; color: #555;">
-                        <span class="traffic-light">${trafficLight}</span> ${statusText}
-                    </div>
-                </div>
-                <button class="btn-success" style="width:100%; padding:10px;" onclick="openLectures('${courseId}')">강의 체크하러 가기</button>
-            `;
-            subjectListEl.appendChild(card);
-        }
-    }
-
-    window.openModal = function(courseId = "") {
-        modal.style.display = "flex";
-        if (courseId && userData.courses[courseId]) {
-            const c = userData.courses[courseId];
-            document.getElementById('modal-title').textContent = "강의 수정";
-            modalId.value = courseId;
-            inputTitle.value = c.title;
-            inputTotal.value = c.total;
-            inputStart.value = c.start;
-            inputEnd.value = c.end;
-            btnDelete.style.display = "block";
         } else {
-            document.getElementById('modal-title').textContent = "새 강의 추가";
-            modalId.value = "";
-            inputTitle.value = "";
-            inputTotal.value = "";
-            inputStart.value = getLocalTodayDateStr();
-            inputEnd.value = getLocalTodayDateStr(30);
-            btnDelete.style.display = "none";
-        }
-    };
-
-    document.getElementById('add-course-btn').addEventListener('click', () => openModal());
-    document.getElementById('modal-cancel-btn').addEventListener('click', () => modal.style.display = "none");
-
-    document.getElementById('modal-save-btn').addEventListener('click', async () => {
-        const title = inputTitle.value.trim();
-        const total = parseInt(inputTotal.value);
-        const start = inputStart.value;
-        const end = inputEnd.value;
-
-        if (!title || !total || !start || !end) {
-            alert("모든 항목을 입력해 주세요.");
-            return;
-        }
-        if (new Date(start) > new Date(end)) {
-            alert("완강 목표일이 시작일보다 빠를 수 없습니다.");
-            return;
-        }
-
-        let id = modalId.value;
-        if (!id) {
-            id = "course_" + Date.now(); 
-            userData.courses[id] = { progress: {} };
-        }
-
-        userData.courses[id].title = title;
-        userData.courses[id].total = total;
-        userData.courses[id].start = start;
-        userData.courses[id].end = end;
-        
-        modal.style.display = "none";
-        await saveData();
-    });
-
-    document.getElementById('modal-delete-btn').addEventListener('click', async () => {
-        if(confirm("정말 이 강의를 삭제하시겠습니까? (체크 기록도 모두 사라집니다)")) {
-            delete userData.courses[modalId.value];
-            modal.style.display = "none";
-            await saveData();
+            currentUser = null;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-login').classList.add('active');
         }
     });
 
-    window.openLectures = function(courseId) {
-        currentSelectedCourseId = courseId;
-        const course = userData.courses[courseId];
-        document.getElementById('current-subject-title').textContent = course.title;
-        
-        const grid = document.getElementById('lecture-grid');
-        grid.innerHTML = '';
-
-        for (let i = 1; i <= course.total; i++) {
-            const box = document.createElement('div');
-            box.className = 'lecture-box';
-            if (course.progress && course.progress[i]) box.classList.add('checked');
-            box.textContent = `${i}강`;
-            box.onclick = () => toggleLecture(i, box);
-            grid.appendChild(box);
-        }
-        showPage('page-lectures');
-    };
-
-    document.getElementById('back-btn').addEventListener('click', () => {
-        renderSubjects();
-        showPage('page-subjects');
-    });
-
-    async function toggleLecture(lectureNum, boxElement) {
-        const isChecked = boxElement.classList.toggle('checked');
-        const course = userData.courses[currentSelectedCourseId];
-        if (!course.progress) course.progress = {};
-        course.progress[lectureNum] = isChecked;
-        
+    document.getElementById('login-btn').addEventListener('click', async () => {
         try {
-            await setDoc(doc(db, "users", currentUser.uid), userData);
+            await signInWithPopup(auth, new GoogleAuthProvider());
         } catch (error) {
-            console.error("저장 실패:", error);
+            document.getElementById('login-error').innerText = "로그인 실패: " + error.message;
+        }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+    // --- 데이터 로드 & 자동 저장 ---
+    async function loadDailyData() {
+        const docRef = doc(db, "users", currentUser.uid, "planner", selectedDate);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            dailyData = docSnap.data();
+            if(!dailyData.tasks) dailyData.tasks = [];
+            if(!dailyData.tracker) dailyData.tracker = {};
+        } else {
+            dailyData = getDefaultData();
         }
     }
+
+    // 타이핑 할 때마다 서버에 무리가지 않게 1초 모아서 자동 저장
+    function autoSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(async () => {
+            if(currentUser) {
+                const docRef = doc(db, "users", currentUser.uid, "planner", selectedDate);
+                await setDoc(docRef, dailyData);
+            }
+        }, 1000);
+    }
+
+    // 날짜 변경 이벤트
+    document.getElementById('date-picker').addEventListener('change', async (e) => {
+        selectedDate = e.target.value;
+        await loadDailyData();
+        renderAll();
+    });
+
+    // --- 렌더링 및 UI 업데이트 ---
+    function renderAll() {
+        renderDdayAndDiary();
+        renderTasks();
+        updateTrackerColors();
+    }
+
+    // D-Day & 일기
+    const ddayTitleEl = document.getElementById('dday-title');
+    const ddayDateEl = document.getElementById('dday-date');
+    const ddayResultEl = document.getElementById('dday-result');
+    const diaryTextEl = document.getElementById('diary-text');
+
+    function renderDdayAndDiary() {
+        ddayTitleEl.value = dailyData.ddayTitle || "";
+        ddayDateEl.value = dailyData.ddayDate || "";
+        diaryTextEl.value = dailyData.diary || "";
+        calcDday();
+    }
+
+    function calcDday() {
+        if (!dailyData.ddayDate) {
+            ddayResultEl.textContent = "D-?";
+            return;
+        }
+        const targetD = new Date(dailyData.ddayDate);
+        const today = new Date(getLocalTodayStr());
+        const diffTime = targetD - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) ddayResultEl.textContent = "D-Day";
+        else if (diffDays > 0) ddayResultEl.textContent = `D-${diffDays}`;
+        else ddayResultEl.textContent = `D+${Math.abs(diffDays)}`;
+    }
+
+    [ddayTitleEl, ddayDateEl, diaryTextEl].forEach(el => {
+        el.addEventListener('input', (e) => {
+            if(e.target.id === 'dday-title') dailyData.ddayTitle = e.target.value;
+            if(e.target.id === 'dday-date') { dailyData.ddayDate = e.target.value; calcDday(); }
+            if(e.target.id === 'diary-text') dailyData.diary = e.target.value;
+            autoSave();
+        });
+    });
+
+    // 과목 리스트 (레이아웃 2)
+    const taskListEl = document.getElementById('task-list');
+    
+    document.getElementById('add-task-btn').addEventListener('click', () => {
+        // 랜덤 파스텔톤 색상 부여
+        const colors = ["#ffadad", "#ffd6a5", "#fdffb6", "#caffbf", "#9bf6ff", "#a0c4ff", "#bdb2ff"];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        dailyData.tasks.push({ id: Date.now(), color: randomColor, title: "", time: "", done: false });
+        renderTasks();
+        autoSave();
+    });
+
+    function renderTasks() {
+        taskListEl.innerHTML = '';
+        let totalMinutes = 0;
+
+        dailyData.tasks.forEach((task, index) => {
+            const row = document.createElement('div');
+            row.className = 'task-row';
+
+            // 시간 계산
+            const tMin = parseInt(task.time) || 0;
+            totalMinutes += tMin;
+
+            row.innerHTML = `
+                <input type="color" class="task-color" value="${task.color}">
+                <input type="text" class="task-input" placeholder="과목명/내용" value="${task.title}">
+                <input type="number" class="task-input" placeholder="분" value="${task.time}">
+                <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''}>
+                <button class="btn-delete">X</button>
+            `;
+
+            // 이벤트 리스너 연결
+            const inputs = row.querySelectorAll('input');
+            const colorInput = inputs[0];
+            
+            // 색상 동그라미를 누르면 트래커 색상(펜)이 이 과목 색상으로 변경됨
+            colorInput.addEventListener('click', () => {
+                currentDrawingColor = task.color;
+                document.getElementById('current-color-show').style.background = currentDrawingColor;
+            });
+
+            colorInput.addEventListener('input', (e) => {
+                task.color = e.target.value;
+                currentDrawingColor = task.color;
+                document.getElementById('current-color-show').style.background = currentDrawingColor;
+                autoSave();
+            });
+
+            inputs[1].addEventListener('input', (e) => { task.title = e.target.value; autoSave(); });
+            inputs[2].addEventListener('input', (e) => { 
+                task.time = e.target.value; 
+                renderTasks(); // 시간 변경 시 즉시 총 시간 업데이트를 위해 다시 렌더링
+                autoSave(); 
+                inputs[2].focus(); // 리렌더링 후 포커스 유지
+            });
+            inputs[3].addEventListener('change', (e) => { task.done = e.target.checked; autoSave(); });
+
+            row.querySelector('.btn-delete').addEventListener('click', () => {
+                dailyData.tasks.splice(index, 1);
+                renderTasks();
+                autoSave();
+            });
+
+            taskListEl.appendChild(row);
+        });
+
+        // 총 공부시간 표시 업데이트
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        document.getElementById('display-total-time').textContent = `${hours}H ${mins}M`;
+    }
+
+    // 타임 트래커 (레이아웃 1)
+    const trackerGridEl = document.getElementById('tracker-grid');
+
+    // 06시부터 24시까지 10분 단위 그리드 뼈대 만들기 (앱 켤 때 1번만 실행)
+    function buildTrackerGrid() {
+        trackerGridEl.innerHTML = '';
+        for (let i = 6; i <= 24; i++) { // 아침 6시부터 새벽 12시까지
+            const hour = i === 24 ? 0 : i; // 24시는 00시로 표기
+            const row = document.createElement('div');
+            row.className = 'tracker-row';
+            
+            row.innerHTML = `<div class="hour-label">${String(hour).padStart(2, '0')}</div>`;
+            
+            for (let j = 0; j < 6; j++) { // 10분 단위 6칸
+                const cell = document.createElement('div');
+                cell.className = 'time-cell';
+                cell.dataset.timeKey = `${hour}-${j}`; // 예: "6-0", "14-5"
+                
+                // 칸을 터치하면 현재 선택된 색상으로 칠해짐
+                cell.addEventListener('click', () => {
+                    const key = cell.dataset.timeKey;
+                    // 이미 같은 색이면 지우기(흰색), 아니면 색칠하기
+                    if(dailyData.tracker[key] === currentDrawingColor) {
+                        delete dailyData.tracker[key];
+                        cell.style.background = 'transparent';
+                    } else {
+                        dailyData.tracker[key] = currentDrawingColor;
+                        cell.style.background = currentDrawingColor;
+                    }
+                    autoSave();
+                });
+                row.appendChild(cell);
+            }
+            trackerGridEl.appendChild(row);
+        }
+    }
+
+    // 저장된 데이터로 트래커 색상 채우기
+    function updateTrackerColors() {
+        document.querySelectorAll('.time-cell').forEach(cell => {
+            const key = cell.dataset.timeKey;
+            cell.style.background = dailyData.tracker[key] || 'transparent';
+        });
+        document.getElementById('current-color-show').style.background = currentDrawingColor;
+    }
+
 </script>
 </body>
 </html>
