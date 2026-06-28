@@ -6,14 +6,11 @@
     <title>스마트 플래너 & 강의실</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* [공통: 화면 벗어남 방지 및 텍스트 선택 방지] */
         * { box-sizing: border-box; }
         body { 
             font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; overflow-x: hidden; 
-            /* 꾹 누르기 복사/팝업 방지 */
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;
         }
-        /* 입력칸은 텍스트 선택 허용 */
         input, textarea, select { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
         
         .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; padding-bottom: 80px; }
@@ -36,12 +33,10 @@
         .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 14px; }
 
-        /* [화면 1: Lecture] */
         .subject-card { border: 1px solid #eee; padding: 15px; margin-bottom: 12px; border-radius: 10px; position: relative; }
         .subject-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .subject-title { font-size: 16px; font-weight: bold; color: #1a73e8; }
         
-        /* 2중 진행률 바 (목표 연한 빨강 + 실제 초록) */
         .progress-bar-bg { position: relative; background: #e1e4e8; height: 8px; border-radius: 4px; width: 100%; overflow: hidden; margin-top: 5px; }
         .progress-bar-target { position: absolute; left: 0; top: 0; height: 100%; background: #ffcdd2; z-index: 1; }
         .progress-bar-actual { position: absolute; left: 0; top: 0; height: 100%; background: #4CAF50; z-index: 2; transition: width 0.3s; }
@@ -52,7 +47,6 @@
         .lecture-box.checked { background: #4CAF50; color: white; border-color: #4CAF50; }
         .toggle-grid-btn { background: #f8f9fa; border: 1px solid #eee; border-radius: 4px; color: #555; font-size: 11px; padding: 4px 10px; margin-top: 5px; display: inline-block; }
 
-        /* [화면 2: Planner] */
         .planner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .date-picker { font-size: 18px; font-weight: bold; border: none; background: transparent; padding: 0; width: 140px; }
         .total-time-box { background: #e8f0fe; color: #1a73e8; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; }
@@ -60,7 +54,6 @@
 
         .task-list { display: flex; flex-direction: column; gap: 8px; }
         .task-row { display: grid; gap: 8px; align-items: center; background: #fafafa; padding: 8px; border-radius: 8px; border: 1px solid #eee; position: relative; overflow: hidden; }
-        /* 과목과 할일에 따른 그리드 분기 */
         .task-row.type-course { grid-template-columns: 30px 1fr 50px 45px; }
         .task-row.type-todo { grid-template-columns: 30px 1fr 50px; }
         
@@ -75,8 +68,7 @@
         .color-palette { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .color-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
-        /* [Timetable] */
-        .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; margin-top: 10px; touch-action: none; /* 드래그 중 스크롤 방지 */ }
+        .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; margin-top: 10px; touch-action: none; }
         .tracker-row { display: flex; border-bottom: 1px solid #eee; height: 24px; position: relative; }
         .hour-label { width: 35px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: #888; border-right: 1px solid #eee; background: #f8f9fa; flex-shrink: 0; }
         .time-cell { flex: 1; border-right: 1px solid #eee; border-right: 1px dashed #eee; transition: background 0.1s; position: relative; }
@@ -85,8 +77,6 @@
         .tracker-text-overlay { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: rgba(0,0,0,0.6); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 3;}
 
         .diary-box { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; resize: vertical; min-height: 80px; font-family: inherit; margin-top: 5px; font-size: 14px; }
-
-        /* [화면 3: Settings] */
         .dday-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; font-size: 14px; border: 1px solid #eee;}
     </style>
 </head>
@@ -133,7 +123,7 @@
                     <button id="btn-execute-delete" style="background:#e53935; color:white; font-size:11px; padding:4px 8px; display:none;" onclick="executeDeleteSelection()">선택 삭제</button>
                 </div>
             </div>
-            <p style="font-size:11px; color:#888; margin:0 0 10px 0;">* 드래그하여 여러 칸을 선택하세요.<br>* 삭제모드 OFF 시 칸을 꾹 누르면 삭제됩니다.</p>
+            <p style="font-size:11px; color:#888; margin:0 0 10px 0;">* 드래그하여 여러 칸 선택 | * 꾹 눌러서 삭제 (삭제모드 OFF 시)</p>
             <div class="tracker-grid" id="tracker-grid"></div>
         </div>
 
@@ -233,7 +223,7 @@
     let userData = { courses: {}, settings: { ddays: [], selectedDdayId: "" } };
     let dailyData = { tasks: [], tracker: {}, diary: "" };
     let selectedDate = getLocalTodayStr();
-    let expandedCourses = new Set(); // 진도표 열림 상태 유지
+    let expandedCourses = new Set();
     const PASTEL_COLORS = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff', '#fffffc', '#e0e0e0'];
     let autoSaveTimeout = null;
 
@@ -241,6 +231,7 @@
         const d = new Date();
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
+    
     window.switchTab = function(pageId, btnElement) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
@@ -256,13 +247,13 @@
     window.openModal = function(id) { document.getElementById(id).style.display = 'flex'; }
     
     async function saveGlobalData() { if(currentUser) await setDoc(doc(db, "users", currentUser.uid, "global", "data"), userData); }
+    
+    // 디바운싱 저장 (서버 보호용)
     async function saveDailyData() {
         if(!currentUser) return;
         if(autoSaveTimeout) clearTimeout(autoSaveTimeout);
         autoSaveTimeout = setTimeout(async () => {
             await setDoc(doc(db, "users", currentUser.uid, "planner", selectedDate), dailyData);
-            renderPlannerTasks(); 
-            renderTimetable();
         }, 500);
     }
 
@@ -299,8 +290,12 @@
         const dSnap = await getDoc(doc(db, "users", currentUser.uid, "planner", dateStr));
         if(dSnap.exists()) dailyData = dSnap.data();
         else dailyData = { tasks: [], tracker: {}, diary: "" };
+        
         if(!dailyData.tasks) dailyData.tasks = [];
         if(!dailyData.tracker) dailyData.tracker = {};
+        
+        // ★ 이전 데이터 호환 (타입이 없으면 과목으로 강제 지정하여 강의수 버튼 살리기)
+        dailyData.tasks.forEach(t => { if(!t.type) t.type = 'course'; });
     }
 
     // ================= 1. Lecture =================
@@ -314,7 +309,6 @@
             const completed = Object.values(course.progress || {}).filter(v=>v).length;
             const actualPct = Math.round((completed/total)*100);
             
-            // 목표 진도 계산
             let targetText = "";
             let targetPct = 0;
             if(course.start && course.end) {
@@ -357,11 +351,12 @@
                 box.onclick = async () => {
                     box.classList.toggle('checked');
                     if(!course.progress) course.progress = {};
-                    // 체크 시 현재 날짜 텍스트 저장 (플래너 연동 위함)
                     if(box.classList.contains('checked')) course.progress[i] = getLocalTodayStr();
                     else delete course.progress[i];
                     await saveGlobalData();
+                    // 즉시 렌더
                     renderLectureTab(); 
+                    if(document.getElementById('page-planner').classList.contains('active')) renderPlannerTasks();
                 };
                 grid.appendChild(box);
             }
@@ -371,7 +366,7 @@
     window.toggleLectureGrid = function(cId) {
         if(expandedCourses.has(cId)) expandedCourses.delete(cId);
         else expandedCourses.add(cId);
-        renderLectureTab(); // 리렌더링으로 텍스트 변경 적용
+        renderLectureTab();
     }
 
     window.openCourseEditor = function(cId = null) {
@@ -434,12 +429,15 @@
         const randomColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
         dailyData.tasks.push({ id: 't_'+Date.now(), type: type, color: randomColor, courseId: "", title: "", done: false });
         saveDailyData();
+        renderPlannerTasks(); // 즉시 렌더
     }
 
     window.renderPlannerTasks = function() {
         const listEl = document.getElementById('task-list');
         listEl.innerHTML = '';
         let totalMinutes = 0;
+        
+        // ★ 여기서 타임테이블의 실시간 데이터(dailyData.tracker)를 읽어옵니다.
         const timeCalc = {};
         for(let key in dailyData.tracker) {
             const tId = dailyData.tracker[key];
@@ -463,7 +461,6 @@
                 }
                 centerHtml += `</select>`;
                 
-                // 오늘 체크한 개수 계산 (백그라운드 데이터 기준)
                 let todayCheckedCount = 0;
                 if(task.courseId && userData.courses[task.courseId]) {
                     const prog = userData.courses[task.courseId].progress || {};
@@ -484,11 +481,17 @@
             addTouchGestures(row, task);
 
             if(task.type === 'course') {
-                row.querySelector('.task-select').onchange = (e) => { task.courseId = e.target.value; saveDailyData(); };
+                row.querySelector('.task-select').onchange = (e) => { 
+                    task.courseId = e.target.value; 
+                    renderPlannerTasks(); // 즉시렌더
+                    saveDailyData(); 
+                };
             } else {
-                row.querySelector('.task-text-input').oninput = (e) => { task.title = e.target.value; saveDailyData(); };
+                row.querySelector('.task-text-input').oninput = (e) => { 
+                    task.title = e.target.value; 
+                    saveDailyData(); 
+                };
             }
-
             listEl.appendChild(row);
         });
 
@@ -499,25 +502,36 @@
 
     function addTouchGestures(element, task) {
         let startX = 0, startY = 0, isDragging = false, pressTimer = null;
+        
+        // 입력 박스(select, input, clickable버튼)를 터치할 때는 제스처 무시
         element.addEventListener('touchstart', (e) => {
+            if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.classList.contains('clickable')) return;
             startX = e.touches[0].clientX; startY = e.touches[0].clientY; isDragging = false;
             pressTimer = setTimeout(() => {
                 if(!isDragging && confirm("삭제하시겠습니까? (Timetable 기록 포함)")) {
                     dailyData.tasks = dailyData.tasks.filter(t => t.id !== task.id);
                     for(let key in dailyData.tracker) { if(dailyData.tracker[key] === task.id) delete dailyData.tracker[key]; }
+                    renderPlannerTasks(); // 즉시렌더
+                    renderTimetable(); // 즉시렌더
                     saveDailyData();
                 }
             }, 800);
         }, {passive: true});
+        
         element.addEventListener('touchmove', (e) => {
             if(Math.abs(e.touches[0].clientX - startX) > 10 || Math.abs(e.touches[0].clientY - startY) > 10) {
                 isDragging = true; clearTimeout(pressTimer);
             }
         }, {passive: true});
+        
         element.addEventListener('touchend', (e) => {
             clearTimeout(pressTimer);
             if(!isDragging) return;
-            if(Math.abs(e.changedTouches[0].clientX - startX) > 50) { task.done = !task.done; saveDailyData(); }
+            if(Math.abs(e.changedTouches[0].clientX - startX) > 50) { 
+                task.done = !task.done; 
+                renderPlannerTasks(); // 즉시렌더
+                saveDailyData(); 
+            }
         });
     }
 
@@ -530,7 +544,12 @@
             btn.className = 'color-circle'; btn.style.background = c;
             btn.onclick = () => {
                 const task = dailyData.tasks.find(t => t.id === currentEditingTaskIdForColor);
-                if(task) { task.color = c; saveDailyData(); }
+                if(task) { 
+                    task.color = c; 
+                    renderPlannerTasks(); // 즉시렌더
+                    renderTimetable(); // 즉시렌더
+                    saveDailyData(); 
+                }
                 closeModal('modal-color-picker');
             };
             palette.appendChild(btn);
@@ -554,20 +573,24 @@
             box.onclick = () => {
                 box.classList.toggle('checked');
                 if(!course.progress) course.progress = {};
-                if(box.classList.contains('checked')) course.progress[i] = selectedDate; // 현재 플래너 날짜로 저장
+                if(box.classList.contains('checked')) course.progress[i] = selectedDate; 
                 else delete course.progress[i];
             };
             grid.appendChild(box);
         }
         openModal('modal-planner-checklist');
     }
+    
     window.closePlannerChecklist = async function() {
+        // ★ 완료 버튼을 누르는 즉시 화면 렌더링
+        renderPlannerTasks();
+        renderLectureTab();
         await saveGlobalData(); 
-        await saveDailyData(); // 재렌더링 유발
+        saveDailyData(); 
         closeModal('modal-planner-checklist');
     }
 
-    // ================= 3. Timetable (드래그 지원) =================
+    // ================= 3. Timetable (스와이프 지원 및 즉각 렌더링) =================
     let deleteMode = false;
     let selectedCells = new Set();
     
@@ -579,9 +602,13 @@
         selectedCells.clear();
         renderTimetable();
     }
+    
+    // 선택 삭제 버튼 (즉시 반영)
     window.executeDeleteSelection = function() {
         selectedCells.forEach(idx => delete dailyData.tracker[idx]);
         selectedCells.clear();
+        renderTimetable(); // 즉각 화면 갱신
+        renderPlannerTasks(); // 즉각 시간 계산 갱신
         saveDailyData();
     }
 
@@ -605,26 +632,30 @@
         setupTimetableTouch(grid);
     }
 
-    // 드래그(스와이프) 로직
     let dragStartIdx = null;
     let dragCurrentIdx = null;
     let isDraggingTT = false;
     let ttPressTimer = null;
+    let ttStartX = 0, ttStartY = 0;
 
     function setupTimetableTouch(grid) {
         grid.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
+            ttStartX = touch.clientX; ttStartY = touch.clientY;
             const cell = document.elementFromPoint(touch.clientX, touch.clientY);
+            
             if(cell && cell.classList.contains('time-cell')) {
                 isDraggingTT = true;
                 dragStartIdx = parseInt(cell.dataset.index);
                 dragCurrentIdx = dragStartIdx;
                 
-                // 꾹 누르기 단일 삭제 (삭제모드 OFF일때)
+                // 꾹 누르기 단일 삭제 (삭제모드 OFF일때, 0.6초 뒤 즉시 반영)
                 if(!deleteMode) {
                     ttPressTimer = setTimeout(() => {
                         isDraggingTT = false; 
                         delete dailyData.tracker[dragStartIdx];
+                        renderTimetable();
+                        renderPlannerTasks();
                         saveDailyData();
                     }, 600);
                 }
@@ -634,9 +665,12 @@
 
         grid.addEventListener('touchmove', (e) => {
             if(!isDraggingTT) return;
-            clearTimeout(ttPressTimer);
-            e.preventDefault(); // 화면 스크롤 방지
             const touch = e.touches[0];
+            // 약간이라도 움직이면 꾹 누르기 취소
+            if(Math.abs(touch.clientX - ttStartX) > 10 || Math.abs(touch.clientY - ttStartY) > 10) {
+                clearTimeout(ttPressTimer);
+            }
+            e.preventDefault(); 
             const cell = document.elementFromPoint(touch.clientX, touch.clientY);
             if(cell && cell.classList.contains('time-cell')) {
                 const newIdx = parseInt(cell.dataset.index);
@@ -652,20 +686,22 @@
             if(!isDraggingTT) return;
             isDraggingTT = false;
             
-            const minIdx = Math.min(dragStartIdx, dragCurrentIdx);
-            const maxIdx = Math.max(dragStartIdx, dragCurrentIdx);
-            
-            if(deleteMode) {
-                for(let i=minIdx; i<=maxIdx; i++) {
-                    if(selectedCells.has(i)) selectedCells.delete(i);
-                    else selectedCells.add(i);
+            if(dragStartIdx !== null && dragCurrentIdx !== null) {
+                const minIdx = Math.min(dragStartIdx, dragCurrentIdx);
+                const maxIdx = Math.max(dragStartIdx, dragCurrentIdx);
+                
+                if(deleteMode) {
+                    for(let i=minIdx; i<=maxIdx; i++) {
+                        if(selectedCells.has(i)) selectedCells.delete(i);
+                        else selectedCells.add(i);
+                    }
+                    renderTimetable();
+                } else {
+                    openTimetableAssignModal(minIdx, maxIdx);
                 }
-                renderTimetable();
-            } else {
-                openTimetableAssignModal(minIdx, maxIdx);
             }
             dragStartIdx = null; dragCurrentIdx = null;
-            updateSelectionVisuals(); // 초기화
+            updateSelectionVisuals(); 
         });
     }
 
@@ -688,18 +724,21 @@
         select.innerHTML = '<option value="">-- 선택 해제 (지우기) --</option>';
         dailyData.tasks.forEach(t => {
             let title = t.type === 'course' ? (userData.courses[t.courseId]?.title || "(미지정)") : t.title;
-            select.innerHTML += `<option value="${t.id}">${title}</option>`;
+            if(title) select.innerHTML += `<option value="${t.id}">${title}</option>`;
         });
         openModal('modal-timetable-assign');
     }
 
+    // ★ 팝업 확인 버튼 누르는 즉시 색상 및 시간 반영
     window.assignTimetableFromSelect = function() {
         const val = document.getElementById('timetable-task-select').value;
         for(let i = ttAssignRange.start; i <= ttAssignRange.end; i++) {
-            if(val) dailyData.tracker[i] = val;
+            if(val) dailyData.tracker[i] = val; // 다른 값이 있으면 자동 덮어쓰기 (겹침 방지)
             else delete dailyData.tracker[i];
         }
-        saveDailyData();
+        renderTimetable();      // 1. 색상 즉시 렌더링
+        renderPlannerTasks();   // 2. 할일카드 시간 즉시 재계산
+        saveDailyData();        // 3. 백그라운드 서버 저장
         closeModal('modal-timetable-assign');
     }
 
@@ -721,7 +760,6 @@
             }
         });
 
-        // 중앙 텍스트 렌더링
         for (let i = 6; i <= 24; i++) {
             const hour = i === 24 ? 0 : i;
             const rowEl = document.getElementById(`row-${hour}`);
