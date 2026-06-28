@@ -71,9 +71,11 @@
         .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; margin-top: 10px; touch-action: none; }
         .tracker-row { display: flex; border-bottom: 1px solid #eee; height: 24px; position: relative; }
         .hour-label { width: 35px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: #888; border-right: 1px solid #eee; background: #f8f9fa; flex-shrink: 0; }
-        .time-cell { flex: 1; border-right: 1px solid #eee; border-right: 1px dashed #eee; transition: background 0.1s; position: relative; }
-        .time-cell.selected-temp { background: #e0e0e0 !important; }
-        .time-cell.selected-delete { border: 2px solid #e53935 !important; background: #ffebee !important; z-index: 5; }
+        
+        .time-cell { flex: 1; border-right: 1px dashed #eee; transition: background-color 0.1s; position: relative; }
+        .time-cell:nth-child(6) { border-right: 1px solid #eee; }
+        .time-cell.selected-temp { background-color: #d0d0d0 !important; }
+        .time-cell.selected-delete { border: 2px solid #e53935 !important; background-color: #ffebee !important; z-index: 5; }
         .tracker-text-overlay { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: rgba(0,0,0,0.6); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 3;}
 
         .diary-box { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; resize: vertical; min-height: 80px; font-family: inherit; margin-top: 5px; font-size: 14px; }
@@ -201,6 +203,7 @@
         <button class="btn-success" onclick="closePlannerChecklist()">완료 (자동 연동)</button>
     </div>
 </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -248,7 +251,7 @@
     
     async function saveGlobalData() { if(currentUser) await setDoc(doc(db, "users", currentUser.uid, "global", "data"), userData); }
     
-    // 디바운싱 저장 (서버 보호용)
+    // 디바운싱: 저장은 지연되지만 화면 업데이트(render)는 무조건 먼저 실행됨.
     async function saveDailyData() {
         if(!currentUser) return;
         if(autoSaveTimeout) clearTimeout(autoSaveTimeout);
@@ -277,6 +280,7 @@
             document.getElementById('page-login').classList.add('active');
         }
     });
+    
     document.getElementById('login-btn').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()));
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
     
@@ -288,13 +292,24 @@
 
     async function loadDailyData(dateStr) {
         const dSnap = await getDoc(doc(db, "users", currentUser.uid, "planner", dateStr));
-        if(dSnap.exists()) dailyData = dSnap.data();
-        else dailyData = { tasks: [], tracker: {}, diary: "" };
+        if(dSnap.exists()) {
+            dailyData = dSnap.data();
+            if(!dailyData.tracker) dailyData.tracker = {};
+            else {
+                // 이전 숫자 키 배열(Array/Object) 에러 방지 마이그레이션 적용
+                const newTracker = {};
+                for(let k in dailyData.tracker) {
+                    if(!k.startsWith('idx_')) newTracker['idx_' + k] = dailyData.tracker[k];
+                    else newTracker[k] = dailyData.tracker[k];
+                }
+                dailyData.tracker = newTracker;
+            }
+        } else {
+            dailyData = { tasks: [], tracker: {}, diary: "" };
+        }
         
         if(!dailyData.tasks) dailyData.tasks = [];
-        if(!dailyData.tracker) dailyData.tracker = {};
-        
-        // ★ 이전 데이터 호환 (타입이 없으면 과목으로 강제 지정하여 강의수 버튼 살리기)
+        // 하위 호환: 이전 데이터에 type이 없으면 모두 course(과목)으로 통일
         dailyData.tasks.forEach(t => { if(!t.type) t.type = 'course'; });
     }
 
@@ -354,7 +369,6 @@
                     if(box.classList.contains('checked')) course.progress[i] = getLocalTodayStr();
                     else delete course.progress[i];
                     await saveGlobalData();
-                    // 즉시 렌더
                     renderLectureTab(); 
                     if(document.getElementById('page-planner').classList.contains('active')) renderPlannerTasks();
                 };
@@ -379,6 +393,7 @@
         document.getElementById('btn-delete-course').style.display = cId ? "block" : "none";
         openModal('modal-course-editor');
     }
+    
     window.saveCourse = async function() {
         const title = document.getElementById('edit-course-name').value.trim();
         const total = parseInt(document.getElementById('edit-course-total').value);
@@ -394,6 +409,7 @@
         closeModal('modal-course-editor');
         renderLectureTab();
     }
+    
     window.deleteCourse = async function() {
         if(confirm("이 과목을 삭제하시겠습니까?")) {
             delete userData.courses[document.getElementById('edit-course-id').value];
@@ -428,8 +444,8 @@
     window.addPlannerTask = function(type) {
         const randomColor = PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)];
         dailyData.tasks.push({ id: 't_'+Date.now(), type: type, color: randomColor, courseId: "", title: "", done: false });
+        renderPlannerTasks();
         saveDailyData();
-        renderPlannerTasks(); // 즉시 렌더
     }
 
     window.renderPlannerTasks = function() {
@@ -437,7 +453,7 @@
         listEl.innerHTML = '';
         let totalMinutes = 0;
         
-        // ★ 여기서 타임테이블의 실시간 데이터(dailyData.tracker)를 읽어옵니다.
+        // 타임테이블에서 과목별로 공부한 시간(칸당 10분) 자동 합산
         const timeCalc = {};
         for(let key in dailyData.tracker) {
             const tId = dailyData.tracker[key];
@@ -473,7 +489,7 @@
             }
 
             row.innerHTML = `
-                <button class="task-color" style="background:${task.color};" onclick="openColorPicker('${task.id}')"></button>
+                <button class="task-color" style="background-color:${task.color};" onclick="openColorPicker('${task.id}')"></button>
                 ${centerHtml}
                 ${rightHtml}
             `;
@@ -483,7 +499,7 @@
             if(task.type === 'course') {
                 row.querySelector('.task-select').onchange = (e) => { 
                     task.courseId = e.target.value; 
-                    renderPlannerTasks(); // 즉시렌더
+                    renderPlannerTasks(); 
                     saveDailyData(); 
                 };
             } else {
@@ -503,16 +519,16 @@
     function addTouchGestures(element, task) {
         let startX = 0, startY = 0, isDragging = false, pressTimer = null;
         
-        // 입력 박스(select, input, clickable버튼)를 터치할 때는 제스처 무시
         element.addEventListener('touchstart', (e) => {
             if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.classList.contains('clickable')) return;
             startX = e.touches[0].clientX; startY = e.touches[0].clientY; isDragging = false;
             pressTimer = setTimeout(() => {
                 if(!isDragging && confirm("삭제하시겠습니까? (Timetable 기록 포함)")) {
                     dailyData.tasks = dailyData.tasks.filter(t => t.id !== task.id);
+                    // 연동된 타임테이블 기록도 완전 삭제
                     for(let key in dailyData.tracker) { if(dailyData.tracker[key] === task.id) delete dailyData.tracker[key]; }
-                    renderPlannerTasks(); // 즉시렌더
-                    renderTimetable(); // 즉시렌더
+                    renderPlannerTasks();
+                    renderTimetable();
                     saveDailyData();
                 }
             }, 800);
@@ -529,7 +545,7 @@
             if(!isDragging) return;
             if(Math.abs(e.changedTouches[0].clientX - startX) > 50) { 
                 task.done = !task.done; 
-                renderPlannerTasks(); // 즉시렌더
+                renderPlannerTasks();
                 saveDailyData(); 
             }
         });
@@ -541,13 +557,13 @@
         palette.innerHTML = '';
         PASTEL_COLORS.forEach(c => {
             const btn = document.createElement('div');
-            btn.className = 'color-circle'; btn.style.background = c;
+            btn.className = 'color-circle'; btn.style.backgroundColor = c;
             btn.onclick = () => {
                 const task = dailyData.tasks.find(t => t.id === currentEditingTaskIdForColor);
                 if(task) { 
                     task.color = c; 
-                    renderPlannerTasks(); // 즉시렌더
-                    renderTimetable(); // 즉시렌더
+                    renderPlannerTasks();
+                    renderTimetable(); 
                     saveDailyData(); 
                 }
                 closeModal('modal-color-picker');
@@ -557,7 +573,6 @@
     }
     window.openColorPicker = function(taskId) { currentEditingTaskIdForColor = taskId; openModal('modal-color-picker'); }
 
-    // 진도 체크 (오늘 날짜로 백그라운드 저장)
     window.openPlannerChecklist = function(taskId, courseId) {
         if(!courseId) return alert("과목명을 선택해주세요.");
         const course = userData.courses[courseId];
@@ -582,7 +597,6 @@
     }
     
     window.closePlannerChecklist = async function() {
-        // ★ 완료 버튼을 누르는 즉시 화면 렌더링
         renderPlannerTasks();
         renderLectureTab();
         await saveGlobalData(); 
@@ -590,25 +604,24 @@
         closeModal('modal-planner-checklist');
     }
 
-    // ================= 3. Timetable (스와이프 지원 및 즉각 렌더링) =================
+    // ================= 3. Timetable =================
     let deleteMode = false;
     let selectedCells = new Set();
     
     window.toggleDeleteMode = function() {
         deleteMode = !deleteMode;
         document.getElementById('btn-delete-mode').innerText = `삭제 모드: ${deleteMode ? 'ON' : 'OFF'}`;
-        document.getElementById('btn-delete-mode').style.background = deleteMode ? '#ffcdd2' : '#eee';
+        document.getElementById('btn-delete-mode').style.backgroundColor = deleteMode ? '#ffcdd2' : '#eee';
         document.getElementById('btn-execute-delete').style.display = deleteMode ? 'inline-block' : 'none';
         selectedCells.clear();
         renderTimetable();
     }
     
-    // 선택 삭제 버튼 (즉시 반영)
     window.executeDeleteSelection = function() {
-        selectedCells.forEach(idx => delete dailyData.tracker[idx]);
+        selectedCells.forEach(idx => delete dailyData.tracker['idx_' + idx]);
         selectedCells.clear();
-        renderTimetable(); // 즉각 화면 갱신
-        renderPlannerTasks(); // 즉각 시간 계산 갱신
+        renderTimetable(); 
+        renderPlannerTasks(); 
         saveDailyData();
     }
 
@@ -642,18 +655,17 @@
         grid.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
             ttStartX = touch.clientX; ttStartY = touch.clientY;
-            const cell = document.elementFromPoint(touch.clientX, touch.clientY);
+            let cell = e.target.closest('.time-cell');
             
-            if(cell && cell.classList.contains('time-cell')) {
+            if(cell) {
                 isDraggingTT = true;
                 dragStartIdx = parseInt(cell.dataset.index);
                 dragCurrentIdx = dragStartIdx;
                 
-                // 꾹 누르기 단일 삭제 (삭제모드 OFF일때, 0.6초 뒤 즉시 반영)
                 if(!deleteMode) {
                     ttPressTimer = setTimeout(() => {
                         isDraggingTT = false; 
-                        delete dailyData.tracker[dragStartIdx];
+                        delete dailyData.tracker['idx_' + dragStartIdx];
                         renderTimetable();
                         renderPlannerTasks();
                         saveDailyData();
@@ -666,17 +678,20 @@
         grid.addEventListener('touchmove', (e) => {
             if(!isDraggingTT) return;
             const touch = e.touches[0];
-            // 약간이라도 움직이면 꾹 누르기 취소
-            if(Math.abs(touch.clientX - ttStartX) > 10 || Math.abs(touch.clientY - ttStartY) > 10) {
-                clearTimeout(ttPressTimer);
-            }
+            // 아주 미세하게만 움직여도 꾹 누르기 타이머 삭제 (안전성 강화)
+            clearTimeout(ttPressTimer); 
             e.preventDefault(); 
-            const cell = document.elementFromPoint(touch.clientX, touch.clientY);
-            if(cell && cell.classList.contains('time-cell')) {
-                const newIdx = parseInt(cell.dataset.index);
-                if(newIdx !== dragCurrentIdx) {
-                    dragCurrentIdx = newIdx;
-                    updateSelectionVisuals();
+            
+            // 화면 뚫고 좌표 찾기
+            let el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if(el) {
+                let cell = el.closest('.time-cell');
+                if(cell) {
+                    const newIdx = parseInt(cell.dataset.index);
+                    if(newIdx !== dragCurrentIdx) {
+                        dragCurrentIdx = newIdx;
+                        updateSelectionVisuals();
+                    }
                 }
             }
         }, {passive: false});
@@ -729,37 +744,38 @@
         openModal('modal-timetable-assign');
     }
 
-    // ★ 팝업 확인 버튼 누르는 즉시 색상 및 시간 반영
     window.assignTimetableFromSelect = function() {
         const val = document.getElementById('timetable-task-select').value;
         for(let i = ttAssignRange.start; i <= ttAssignRange.end; i++) {
-            if(val) dailyData.tracker[i] = val; // 다른 값이 있으면 자동 덮어쓰기 (겹침 방지)
-            else delete dailyData.tracker[i];
+            if(val) dailyData.tracker['idx_' + i] = val; // 고유 IDX 문자열 키로 저장하여 100% 겹침/증발 방지
+            else delete dailyData.tracker['idx_' + i];
         }
-        renderTimetable();      // 1. 색상 즉시 렌더링
-        renderPlannerTasks();   // 2. 할일카드 시간 즉시 재계산
-        saveDailyData();        // 3. 백그라운드 서버 저장
+        renderTimetable();     
+        renderPlannerTasks();  
+        saveDailyData();       
         closeModal('modal-timetable-assign');
     }
 
     window.renderTimetable = function() {
+        // 모든 셀의 색상 및 텍스트 초기화
         document.querySelectorAll('.time-cell').forEach(cell => {
             const idx = parseInt(cell.dataset.index);
-            cell.style.background = 'transparent';
+            cell.style.backgroundColor = ''; // CSS가 작동하도록 인라인 지우기
             cell.innerHTML = ''; 
             cell.classList.remove('selected-delete');
             
             if(deleteMode && selectedCells.has(idx)) {
                 cell.classList.add('selected-delete');
             } else {
-                const taskId = dailyData.tracker[idx];
+                const taskId = dailyData.tracker['idx_' + idx];
                 if (taskId) {
                     const task = dailyData.tasks.find(t => t.id === taskId);
-                    if (task) cell.style.background = task.color;
+                    if (task) cell.style.backgroundColor = task.color;
                 }
             }
         });
 
+        // 연속된 칸 위에 반투명 과목명 오버레이 그리기
         for (let i = 6; i <= 24; i++) {
             const hour = i === 24 ? 0 : i;
             const rowEl = document.getElementById(`row-${hour}`);
@@ -776,8 +792,9 @@
                 
                 const cells = rowEl.querySelectorAll('.time-cell');
                 const startCell = cells[startJ];
+                if(!startCell) return;
+
                 const spanCount = (endJ - startJ) + 1;
-                
                 const textDiv = document.createElement('div');
                 textDiv.className = 'tracker-text-overlay';
                 textDiv.style.width = `calc(100% * ${spanCount})`; 
@@ -787,7 +804,7 @@
 
             for (let j = 0; j < 6; j++) {
                 const idx = i * 6 + j;
-                const tId = dailyData.tracker[idx];
+                const tId = dailyData.tracker['idx_' + idx];
                 if (tId !== currentTask) {
                     if (currentTask !== null) drawText(blockStartJ, j - 1, currentTask);
                     currentTask = tId || null;
