@@ -114,7 +114,6 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-    // 🔴 회원님의 고유 파이어베이스 설정
     const firebaseConfig = {
         apiKey: "AIzaSyACDKJoKYR8nusUBeqUtm1kFCHtDJwZLFc",
         authDomain: "lectures-app-v.firebaseapp.com",
@@ -132,13 +131,11 @@
     let userData = { courses: {} };
     let currentSelectedCourseId = "";
 
-    // DOM 요소
     const pageLogin = document.getElementById('page-login');
     const pageSubjects = document.getElementById('page-subjects');
     const pageLectures = document.getElementById('page-lectures');
     const subjectListEl = document.getElementById('subject-list');
     
-    // 모달 요소
     const modal = document.getElementById('course-modal');
     const inputTitle = document.getElementById('input-title');
     const inputTotal = document.getElementById('input-total');
@@ -152,7 +149,6 @@
         document.getElementById(pageId).classList.add('active');
     }
 
-    // 인증 리스너
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -168,32 +164,49 @@
     document.getElementById('login-btn').addEventListener('click', () => {
         signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("로그인 실패: " + err.message));
     });
-
     document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
-    // 데이터 로드 및 마이그레이션 (기존 데이터 구조 대비)
+    // 시차 오류를 방지하는 날짜 함수들
+    function getLocalTodayDateStr(addDays = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + addDays);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function parseLocalMidnight(dateStr) {
+        const [y, m, d] = dateStr.split('-');
+        return new Date(y, m - 1, d, 0, 0, 0, 0); // 무조건 로컬 시간 기준 자정
+    }
+
     async function loadData() {
         const docSnap = await getDoc(doc(db, "users", currentUser.uid));
-        if (docSnap.exists()) {
-            let data = docSnap.data();
-            if (!data.courses) {
-                // 이전 버전 데이터가 있다면 새 구조(courses)로 감싸기
-                userData = { courses: {} };
-                for (let key in data) {
-                    userData.courses[key] = {
-                        title: key,
-                        total: 50, // 임시값, 유저가 수정 가능
-                        start: getTodayStr(),
-                        end: getTodayStr(30),
-                        progress: data[key]
-                    };
-                }
-            } else {
-                userData = data;
+        if (docSnap.exists() && docSnap.data().courses) {
+            userData = docSnap.data();
+            
+            // 데이터는 있지만 코스가 텅 비어있을 경우에만 CSV 기본값 세팅
+            if (Object.keys(userData.courses).length === 0) {
+                initDefaultCourses();
+                await saveData();
             }
         } else {
+            // 아예 첫 방문일 때 CSV 기반 기본 과목 자동 세팅 (여유롭게 60일 기간)
             userData = { courses: {} };
+            initDefaultCourses();
+            await saveData();
         }
+    }
+    
+    function initDefaultCourses() {
+        userData.courses = {
+            "csv_1": { title: "환경공학 이론완성 (수질)", total: 75, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
+            "csv_2": { title: "환경공학 이론완성 (대기)", total: 41, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
+            "csv_3": { title: "환경공학 이론완성 (소음진동 및 폐기물)", total: 33, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
+            "csv_4": { title: "화학 이론완성", total: 39, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} },
+            "csv_5": { title: "배수진 화학 기초완성", total: 36, start: getLocalTodayDateStr(), end: getLocalTodayDateStr(60), progress: {} }
+        };
     }
 
     async function saveData() {
@@ -201,16 +214,6 @@
         renderSubjects();
     }
 
-    // 날짜 헬퍼 함수
-    function getTodayStr(addDays = 0) {
-        const d = new Date();
-        d.setDate(d.getDate() + addDays);
-        return d.toISOString().split('T')[0];
-    }
-    
-    function parseDate(dateStr) { return new Date(dateStr); }
-
-    // 메인 리스트 렌더링 (핵심 로직 포함)
     function renderSubjects() {
         subjectListEl.innerHTML = '';
         
@@ -219,42 +222,45 @@
             return;
         }
 
-        const today = new Date();
-        today.setHours(0,0,0,0); // 시간 무시
+        // 오늘의 정확한 로컬 자정 시간 구하기
+        const todayStr = getLocalTodayDateStr();
+        const todayD = parseLocalMidnight(todayStr);
 
         for (const [courseId, course] of Object.entries(userData.courses)) {
             const totalLectures = parseInt(course.total) || 1;
             const completedCount = Object.values(course.progress || {}).filter(v => v === true).length;
             const progressRate = Math.round((completedCount / totalLectures) * 100);
 
-            // 날짜 및 권장량 계산 로직
-            const startD = parseDate(course.start);
-            const endD = parseDate(course.end);
+            const startD = parseLocalMidnight(course.start);
+            const endD = parseLocalMidnight(course.end);
             
             let statusText = "";
-            let trafficLight = "🟢"; // 기본 안전
-            let requiredPerDay = 0;
+            let trafficLight = "🟢"; 
+            
+            const totalDays = Math.max(1, (endD - startD) / (1000 * 60 * 60 * 24) + 1); // 시작일 포함 총 일수
+            const requiredPerDay = (totalLectures / totalDays).toFixed(1);
 
-            const totalDays = Math.max(1, (endD - startD) / (1000 * 60 * 60 * 24));
-            requiredPerDay = (totalLectures / totalDays).toFixed(1);
+            // 오늘이 과정 중 며칠 차인지 계산 (시작 당일이면 1일 차)
+            const currentDay = Math.floor((todayD - startD) / (1000 * 60 * 60 * 24)) + 1;
 
-            const daysPassed = (today - startD) / (1000 * 60 * 60 * 24);
-            const targetLecturesAsOfToday = Math.max(0, Math.min(totalLectures, Math.floor(daysPassed * requiredPerDay)));
-
-            if (today < startD) {
+            if (todayD < startD) {
                 statusText = "아직 시작일 전입니다.";
                 trafficLight = "⚪";
-            } else if (today > endD && completedCount < totalLectures) {
+            } else if (todayD > endD && completedCount < totalLectures) {
                 statusText = "목표 기간이 지났습니다! 서두르세요.";
                 trafficLight = "🔴";
             } else {
                 statusText = `목표 달성을 위해 <b>하루 ${requiredPerDay}강</b> 권장`;
+                
+                // 오늘까지 달성해야 하는 목표 누적 강의 수
+                const targetLecturesAsOfToday = Math.max(0, Math.min(totalLectures, Math.floor(currentDay * requiredPerDay)));
+
                 if (completedCount >= targetLecturesAsOfToday) {
-                    trafficLight = "🟢"; // 순항
+                    trafficLight = "🟢"; // 목표치 이상 수강
                 } else if (targetLecturesAsOfToday - completedCount <= 2) {
-                    trafficLight = "🟡"; // 약간 지연 (2강 이하 차이)
+                    trafficLight = "🟡"; // 1~2강 정도 밀림
                 } else {
-                    trafficLight = "🔴"; // 위험 (많이 밀림)
+                    trafficLight = "🔴"; // 많이 밀림
                 }
             }
 
@@ -288,7 +294,6 @@
         }
     }
 
-    // 전역 함수로 등록 (onclick 작동을 위해)
     window.openModal = function(courseId = "") {
         modal.style.display = "flex";
         if (courseId && userData.courses[courseId]) {
@@ -305,8 +310,8 @@
             modalId.value = "";
             inputTitle.value = "";
             inputTotal.value = "";
-            inputStart.value = getTodayStr();
-            inputEnd.value = getTodayStr(30);
+            inputStart.value = getLocalTodayDateStr();
+            inputEnd.value = getLocalTodayDateStr(30);
             btnDelete.style.display = "none";
         }
     };
@@ -331,7 +336,7 @@
 
         let id = modalId.value;
         if (!id) {
-            id = "course_" + Date.now(); // 새 과목 고유 ID 생성
+            id = "course_" + Date.now(); 
             userData.courses[id] = { progress: {} };
         }
 
@@ -352,7 +357,6 @@
         }
     });
 
-    // 강의 상세 체크 화면
     window.openLectures = function(courseId) {
         currentSelectedCourseId = courseId;
         const course = userData.courses[courseId];
