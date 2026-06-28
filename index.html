@@ -6,16 +6,14 @@
     <title>스마트 플래너 & 강의실</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* [공통: 텍스트 꾹누르기 복사 방지 및 화면 넓이 강제 고정] */
+        /* [공통: 화면 넓이 강제 고정 및 텍스트 꾹누르기 방지] */
         * { box-sizing: border-box; }
         body { 
             font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333; 
             overflow-x: hidden; width: 100vw;
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none;
         }
-        input, textarea, select { 
-            -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; 
-        }
+        input, textarea, select { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
         
         .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; padding-bottom: 80px; }
         .page { display: none; }
@@ -45,7 +43,7 @@
         .progress-bar-bg { position: relative; background: #e1e4e8; height: 8px; border-radius: 4px; width: 100%; overflow: hidden; margin-top: 5px; }
         .progress-bar-target { position: absolute; left: 0; top: 0; height: 100%; background: #ffcdd2; z-index: 1; }
         .progress-bar-actual { position: absolute; left: 0; top: 0; height: 100%; background: #4CAF50; z-index: 2; transition: width 0.3s; }
-        .target-text { text-align: right; font-size: 11px; color: #888; margin-top: 4px; } /* 바 아래 우측으로 배치 */
+        .target-text { text-align: right; font-size: 11px; color: #888; margin-top: 4px; } 
 
         .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; margin-top: 10px; }
         .lecture-box { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 12px 0; text-align: center; cursor: pointer; font-size: 13px; font-weight: bold; }
@@ -60,37 +58,35 @@
 
         .task-list { display: flex; flex-direction: column; gap: 8px; }
         .task-row { display: grid; gap: 8px; align-items: center; background: #fafafa; padding: 8px; border-radius: 8px; border: 1px solid #eee; position: relative; overflow: hidden; }
-        /* minmax(0, 1fr)로 글씨가 길어도 화면 밖으로 밀어내지 않게 고정 */
         .task-row.type-course { grid-template-columns: 25px minmax(0, 1fr) 45px 45px; }
         .task-row.type-todo { grid-template-columns: 25px minmax(0, 1fr) 45px; }
         
         .task-row.done::after { content: ''; position: absolute; top: 50%; left: 10px; right: 10px; height: 2px; background: #e53935; z-index: 10; opacity: 0.7; }
         .task-row.done { opacity: 0.6; }
-        .task-color { width: 25px; height: 25px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0; }
+        .task-color { width: 25px; height: 25px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0; padding:0; }
         .task-select, .task-text-input { border: none; background: transparent; font-size: 13px; font-weight: bold; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         .task-text-input { border-bottom: 1px solid #ddd; border-radius: 0; padding-bottom: 2px; }
         .task-input-box { border: 1px solid #ddd; background: white; border-radius: 4px; text-align: center; font-size: 11px; padding: 6px 0; font-weight: bold; color: #555; width: 100%; }
         .task-input-box.clickable { cursor: pointer; color: #1a73e8; background: #e8f0fe; border-color: #a8c7fa; }
 
         .color-palette { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-        .color-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .color-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding:0; }
         
         /* [Timetable] */
-        .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; margin-top: 10px; touch-action: none; }
+        .tracker-grid { border-top: 1px solid #eee; border-left: 1px solid #eee; margin-top: 10px; touch-action: none; position: relative; }
         .tracker-row { display: flex; border-bottom: 1px solid #eee; height: 24px; position: relative; }
-        .hour-label { width: 35px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: #888; border-right: 1px solid #eee; background: #f8f9fa; flex-shrink: 0; }
+        .hour-label { width: 35px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: #888; border-right: 1px solid #eee; background: #f8f9fa; flex-shrink: 0; pointer-events: none; }
         
+        /* 칸 칠하기 관련 중요 CSS */
         .time-cell { flex: 1; border-right: 1px dashed #eee; transition: background-color 0.1s; position: relative; }
         .time-cell:nth-child(6) { border-right: 1px solid #eee; }
-        .time-cell.selected-temp { background-color: #e0e0e0 !important; }
+        .time-cell.selected-temp { background-color: #d0d0d0 !important; }
         .time-cell.selected-delete { border: 2px solid #e53935 !important; background-color: #ffebee !important; z-index: 5; }
         
-        /* 글씨가 터치를 방해하지 못하게 pointer-events: none 적용 */
+        /* 텍스트가 터치를 방해하지 못하도록 pointer-events: none 완벽 적용 */
         .tracker-text-overlay { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: rgba(0,0,0,0.6); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 3;}
 
         .diary-box { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; resize: vertical; min-height: 80px; font-family: inherit; margin-top: 5px; font-size: 14px; }
-        
-        /* [화면 3: Settings] */
         .dday-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; font-size: 14px; border: 1px solid #eee;}
     </style>
 </head>
@@ -99,14 +95,14 @@
 <div class="container">
     <div id="page-login" class="page active" style="text-align:center; padding-top: 120px;">
         <h2>스마트 플래너 & 강의실</h2>
-        <button class="btn-primary" id="login-btn">Google 계정으로 시작하기</button>
+        <button type="button" class="btn-primary" id="login-btn">Google 계정으로 시작하기</button>
         <p id="login-error" style="color:red; margin-top:10px; font-size:13px;"></p>
     </div>
 
     <div id="page-lecture" class="page">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
             <h2 style="margin:0;">내 강의실</h2>
-            <button class="btn-success" style="padding: 8px 12px; font-size: 12px; width:auto;" onclick="openCourseEditor()">+ 강의 추가</button>
+            <button type="button" class="btn-success" style="padding: 8px 12px; font-size: 12px; width:auto;" onclick="openCourseEditor()">+ 강의 추가</button>
         </div>
         <div id="lecture-list"></div>
     </div>
@@ -124,8 +120,8 @@
             <h3 style="margin:0 0 10px 0; font-size:15px;">📚 오늘의 과목 및 할 일</h3>
             <div class="task-list" id="task-list"></div>
             <div style="display:flex; gap:8px; margin-top:10px;">
-                <button class="btn-primary" style="background:#f8f9fa; color:#555; border:1px dashed #ccc; padding:10px;" onclick="addPlannerTask('course')">+ 과목 추가</button>
-                <button class="btn-primary" style="background:#f8f9fa; color:#555; border:1px dashed #ccc; padding:10px;" onclick="addPlannerTask('todo')">+ 할일 추가</button>
+                <button type="button" class="btn-primary" style="background:#f8f9fa; color:#555; border:1px dashed #ccc; padding:10px;" onclick="addPlannerTask('course')">+ 과목 추가</button>
+                <button type="button" class="btn-primary" style="background:#f8f9fa; color:#555; border:1px dashed #ccc; padding:10px;" onclick="addPlannerTask('todo')">+ 할일 추가</button>
             </div>
         </div>
 
@@ -133,11 +129,11 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
                 <h3 style="margin:0; font-size:15px;">⏱️ Timetable</h3>
                 <div>
-                    <button id="btn-delete-mode" style="background:#eee; color:#555; font-size:11px; padding:4px 8px; margin-right:5px;" onclick="toggleDeleteMode()">삭제 모드: OFF</button>
-                    <button id="btn-execute-delete" style="background:#e53935; color:white; font-size:11px; padding:4px 8px; display:none;" onclick="executeDeleteSelection()">선택 삭제</button>
+                    <button type="button" id="btn-delete-mode" style="background:#eee; color:#555; font-size:11px; padding:4px 8px; margin-right:5px;" onclick="toggleDeleteMode()">삭제 모드: OFF</button>
+                    <button type="button" id="btn-execute-delete" style="background:#e53935; color:white; font-size:11px; padding:4px 8px; display:none;" onclick="executeDeleteSelection()">선택 삭제</button>
                 </div>
             </div>
-            <p style="font-size:11px; color:#888; margin:0 0 10px 0;">* 드래그하여 범위 선택 | * 꾹 눌러서 삭제</p>
+            <p style="font-size:11px; color:#888; margin:0 0 10px 0;">* 드래그하여 범위 선택 | * 꾹 눌러서 단일 삭제</p>
             <div class="tracker-grid" id="tracker-grid"></div>
         </div>
 
@@ -149,28 +145,28 @@
 
     <div id="page-settings" class="page">
         <h2 style="margin-top:0;">설정</h2>
-        <button class="btn-primary" style="background:white; color:#333; border:1px solid #ddd; text-align:left; padding:15px;" onclick="switchTab('page-settings-dday', null)">🚩 D-Day 관리 (이동) ➡️</button>
-        <button class="btn-primary" style="background:#eee; color:#888; margin-top:20px;" id="logout-btn">로그아웃</button>
+        <button type="button" class="btn-primary" style="background:white; color:#333; border:1px solid #ddd; text-align:left; padding:15px;" onclick="switchTab('page-settings-dday', null)">🚩 D-Day 관리 (이동) ➡️</button>
+        <button type="button" class="btn-primary" style="background:#eee; color:#888; margin-top:20px;" id="logout-btn">로그아웃</button>
     </div>
 
     <div id="page-settings-dday" class="page">
-        <button style="background:transparent; color:#1a73e8; font-size:14px; padding:0; margin-bottom:15px;" onclick="switchTab('page-settings', null)">⬅ 설정으로 돌아가기</button>
+        <button type="button" style="background:transparent; color:#1a73e8; font-size:14px; padding:0; margin-bottom:15px;" onclick="switchTab('page-settings', null)">⬅ 설정으로 돌아가기</button>
         <h2 style="margin-top:0;">D-Day 관리</h2>
         <div class="card">
             <div id="dday-list"></div>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
                 <input type="text" id="new-dday-title" placeholder="목표 (예: 기사시험)" style="width:100%;">
                 <input type="date" id="new-dday-date" style="width:100%;">
-                <button class="btn-success" style="padding:12px 15px; width:100%;" onclick="addDday()">추가하기</button>
+                <button type="button" class="btn-success" style="padding:12px 15px; width:100%;" onclick="addDday()">추가하기</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav" id="bottom-nav" style="display:none;">
-    <button class="nav-item" onclick="switchTab('page-lecture', this)">📺 강의</button>
-    <button class="nav-item active" onclick="switchTab('page-planner', this)">📝 플래너</button>
-    <button class="nav-item" onclick="switchTab('page-settings', this)">⚙️ 설정</button>
+    <button type="button" class="nav-item" onclick="switchTab('page-lecture', this)">📺 강의</button>
+    <button type="button" class="nav-item active" onclick="switchTab('page-planner', this)">📝 플래너</button>
+    <button type="button" class="nav-item" onclick="switchTab('page-settings', this)">⚙️ 설정</button>
 </div>
 
 <div class="modal-overlay" id="modal-course-editor">
@@ -182,10 +178,10 @@
         <div class="form-group"><label>목표 시작일</label><input type="date" id="edit-course-start"></div>
         <div class="form-group"><label>목표 종료일</label><input type="date" id="edit-course-end"></div>
         <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <button class="btn-primary" style="background:#888; width:48%;" onclick="closeModal('modal-course-editor')">취소</button>
-            <button class="btn-success" style="width:48%;" onclick="saveCourse()">저장</button>
+            <button type="button" class="btn-primary" style="background:#888; width:48%;" onclick="closeModal('modal-course-editor')">취소</button>
+            <button type="button" class="btn-success" style="width:48%;" onclick="saveCourse()">저장</button>
         </div>
-        <button class="btn-primary" style="background:#f44336; margin-top:10px;" id="btn-delete-course" onclick="deleteCourse()">삭제하기</button>
+        <button type="button" class="btn-primary" style="background:#f44336; margin-top:10px;" id="btn-delete-course" onclick="deleteCourse()">삭제하기</button>
     </div>
 </div>
 
@@ -193,7 +189,7 @@
     <div class="modal-content">
         <h3 style="margin-top:0; text-align:center;">색상 선택</h3>
         <div class="color-palette" id="color-palette"></div>
-        <button class="btn-primary" style="background:#888; margin-top:15px;" onclick="closeModal('modal-color-picker')">닫기</button>
+        <button type="button" class="btn-primary" style="background:#888; margin-top:15px;" onclick="closeModal('modal-color-picker')">닫기</button>
     </div>
 </div>
 
@@ -202,8 +198,8 @@
         <h3 style="margin-top:0;">과목/할일 선택</h3>
         <div class="form-group"><select id="timetable-task-select"></select></div>
         <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <button class="btn-primary" style="background:#888; width:48%;" onclick="closeModal('modal-timetable-assign')">취소</button>
-            <button class="btn-success" style="width:48%;" onclick="assignTimetableFromSelect()">적용</button>
+            <button type="button" class="btn-primary" style="background:#888; width:48%;" onclick="closeModal('modal-timetable-assign')">취소</button>
+            <button type="button" class="btn-success" style="width:48%;" onclick="assignTimetableFromSelect()">적용</button>
         </div>
     </div>
 </div>
@@ -212,7 +208,7 @@
     <div class="modal-content" style="max-height: 80vh; display:flex; flex-direction:column;">
         <h3 style="margin-top:0;" id="planner-checklist-title">진도 체크</h3>
         <div class="lecture-grid" id="planner-checklist-grid" style="overflow-y:auto; flex:1; margin-bottom:15px;"></div>
-        <button class="btn-success" onclick="closePlannerChecklist()">완료 (자동 연동)</button>
+        <button type="button" class="btn-success" onclick="closePlannerChecklist()">완료 (자동 연동)</button>
     </div>
 </div>
 <script type="module">
@@ -262,7 +258,6 @@
     
     async function saveGlobalData() { if(currentUser) await setDoc(doc(db, "users", currentUser.uid, "global", "data"), userData); }
     
-    // 디바운싱: 저장은 지연되지만 화면 업데이트(render)는 무조건 먼저 실행됨.
     async function saveDailyData() {
         if(!currentUser) return;
         if(autoSaveTimeout) clearTimeout(autoSaveTimeout);
@@ -307,7 +302,7 @@
             dailyData = dSnap.data();
             if(!dailyData.tracker) dailyData.tracker = {};
             else {
-                // 이전 숫자 배열 에러 방지 마이그레이션 적용
+                // 배열 에러 방지 마이그레이션 (문자열 강제)
                 const newTracker = {};
                 for(let k in dailyData.tracker) {
                     if(!k.startsWith('idx_')) newTracker['idx_' + k] = dailyData.tracker[k];
@@ -356,9 +351,9 @@
             card.innerHTML = `
                 <div class="subject-header">
                     <div class="subject-title">${course.title} <span class="completed-text" style="font-size:12px; color:#888;">(${completed}/${total})</span></div>
-                    <button class="btn-primary" style="padding:4px 8px; font-size:11px; width:auto; background:#eee; color:#333;" onclick="openCourseEditor('${cId}')">수정</button>
+                    <button type="button" class="btn-primary" style="padding:4px 8px; font-size:11px; width:auto; background:#eee; color:#333;" onclick="openCourseEditor('${cId}')">수정</button>
                 </div>
-                <button class="toggle-grid-btn" onclick="toggleLectureGrid('${cId}')">진도표 ${isExp ? '닫기 ▲' : '열기 ▼'}</button>
+                <button type="button" class="toggle-grid-btn" onclick="toggleLectureGrid('${cId}')">진도표 ${isExp ? '닫기 ▲' : '열기 ▼'}</button>
                 <div class="progress-bar-bg">
                     <div class="progress-bar-target" style="width:${targetPct}%"></div>
                     <div class="progress-bar-actual" style="width:${actualPct}%"></div>
@@ -375,7 +370,7 @@
                 box.className = 'lecture-box' + (checkedVal ? ' checked' : '');
                 box.innerText = `${i}강`;
                 
-                // 클릭 시 DOM 재생성(닫힘 현상) 없이 해당 카드 내부 바만 업데이트
+                // 클릭 시 카드 내부 데이터만 업데이트하여 DOM 초기화 방지
                 box.onclick = async () => {
                     box.classList.toggle('checked');
                     if(!course.progress) course.progress = {};
@@ -395,7 +390,6 @@
         }
     }
     
-    // 버튼 클릭 시 텍스트만 토글하여 깜빡임 방지
     window.toggleLectureGrid = function(cId) {
         const grid = document.getElementById(`grid-${cId}`);
         const btn = document.querySelector(`#card-${cId} .toggle-grid-btn`);
@@ -465,6 +459,7 @@
         document.getElementById('diary-text').oninput = (e) => { dailyData.diary = e.target.value; saveDailyData(); };
 
         renderPlannerTasks();
+        renderTimetable();
     }
 
     window.addPlannerTask = function(type) {
@@ -479,7 +474,7 @@
         listEl.innerHTML = '';
         let totalMinutes = 0;
         
-        // 타임테이블에서 실시간 합산
+        // 타임테이블 시간 계산 (idx_ 가 붙은 형태)
         const timeCalc = {};
         for(let key in dailyData.tracker) {
             const tId = dailyData.tracker[key];
@@ -515,7 +510,7 @@
             }
 
             row.innerHTML = `
-                <button class="task-color" style="background-color:${task.color};" onclick="openColorPicker('${task.id}')"></button>
+                <button type="button" class="task-color" style="background-color:${task.color};" onclick="openColorPicker('${task.id}')"></button>
                 ${centerHtml}
                 ${rightHtml}
             `;
@@ -542,7 +537,7 @@
         document.getElementById('display-total-time').innerText = `${hrs}H ${mins}M`;
     }
 
-    // ★ 텍스트/입력칸이 아닌 곳만 터치 이벤트를 받게 하여 버튼 방해 원천 차단!
+    // 터치 및 제스처 
     function addTouchGestures(element, task) {
         let startX = 0, startY = 0, isDragging = false, pressTimer = null;
         
@@ -550,7 +545,7 @@
             if(e.target.closest('button, select, input, .clickable')) return;
             startX = e.touches[0].clientX; startY = e.touches[0].clientY; isDragging = false;
             pressTimer = setTimeout(() => {
-                if(!isDragging && confirm("삭제하시겠습니까? (Timetable 기록 포함)")) {
+                if(!isDragging && confirm("이 일정을 삭제하시겠습니까? (Timetable 기록 포함)")) {
                     dailyData.tasks = dailyData.tasks.filter(t => t.id !== task.id);
                     for(let key in dailyData.tracker) { if(dailyData.tracker[key] === task.id) delete dailyData.tracker[key]; }
                     renderPlannerTasks();
@@ -577,27 +572,29 @@
         });
     }
 
+    // 색상 선택 모달 로직 (직접 클릭 이벤트 매핑으로 완벽 호환)
     let currentEditingTaskIdForColor = null;
+    window.openColorPicker = function(taskId) { 
+        currentEditingTaskIdForColor = taskId; 
+        openModal('modal-color-picker'); 
+    }
+    window.selectColor = function(c) {
+        const task = dailyData.tasks.find(t => t.id === currentEditingTaskIdForColor);
+        if(task) { 
+            task.color = c; 
+            renderPlannerTasks();
+            renderTimetable(); 
+            saveDailyData(); 
+        }
+        closeModal('modal-color-picker');
+    };
     function buildColorPalette() {
         const palette = document.getElementById('color-palette');
         palette.innerHTML = '';
         PASTEL_COLORS.forEach(c => {
-            const btn = document.createElement('div');
-            btn.className = 'color-circle'; btn.style.backgroundColor = c;
-            btn.onclick = () => {
-                const task = dailyData.tasks.find(t => t.id === currentEditingTaskIdForColor);
-                if(task) { 
-                    task.color = c; 
-                    renderPlannerTasks();
-                    renderTimetable(); 
-                    saveDailyData(); 
-                }
-                closeModal('modal-color-picker');
-            };
-            palette.appendChild(btn);
+            palette.innerHTML += `<button type="button" class="color-circle" style="background-color:${c};" onclick="selectColor('${c}')"></button>`;
         });
     }
-    window.openColorPicker = function(taskId) { currentEditingTaskIdForColor = taskId; openModal('modal-color-picker'); }
 
     window.openPlannerChecklist = function(taskId, courseId) {
         if(!courseId) return alert("과목명을 선택해주세요.");
@@ -704,13 +701,11 @@
             if(!isDraggingTT) return;
             const touch = e.touches[0];
             
-            // 미세한 떨림 방지 및 타이머 취소
             if(Math.abs(touch.clientX - ttStartX) > 15 || Math.abs(touch.clientY - ttStartY) > 15) {
                 clearTimeout(ttPressTimer); 
             }
-            e.preventDefault(); // 스크롤 금지
+            e.preventDefault(); 
             
-            // 텍스트 오버레이를 뚫고 아래 요소 확인
             let el = document.elementFromPoint(touch.clientX, touch.clientY);
             if(el) {
                 let cell = el.closest('.time-cell');
@@ -772,7 +767,7 @@
         openModal('modal-timetable-assign');
     }
 
-    // ★ 팝업 확인 누르는 즉시(0.1초) 색상 반영 및 CSS style 강제 덮어쓰기
+    // 팝업 적용 시 즉시 렌더링
     window.assignTimetableFromSelect = function() {
         const val = document.getElementById('timetable-task-select').value;
         for(let i = ttAssignRange.start; i <= ttAssignRange.end; i++) {
@@ -785,11 +780,11 @@
         closeModal('modal-timetable-assign');
     }
 
+    // 순수 JS 백그라운드 컬러 렌더링 (오류 원천 차단)
     window.renderTimetable = function() {
-        // 모든 셀 초기화 (강제로 style property 제거)
         document.querySelectorAll('.time-cell').forEach(cell => {
             const idx = parseInt(cell.dataset.index);
-            cell.style.removeProperty('background-color');
+            cell.style.backgroundColor = ''; 
             cell.innerHTML = ''; 
             cell.classList.remove('selected-delete');
             
@@ -799,13 +794,11 @@
                 const taskId = dailyData.tracker['idx_' + idx];
                 if (taskId) {
                     const task = dailyData.tasks.find(t => t.id === taskId);
-                    // CSS 강제 적용!
-                    if (task && task.color) cell.style.setProperty('background-color', task.color, 'important');
+                    if (task && task.color) cell.style.backgroundColor = task.color;
                 }
             }
         });
 
-        // 텍스트 오버레이 그리기
         for (let i = 6; i <= 24; i++) {
             const hour = i === 24 ? 0 : i;
             const rowEl = document.getElementById(`row-${hour}`);
@@ -854,7 +847,7 @@
             div.className = 'dday-item';
             div.innerHTML = `
                 <div><b>${d.title}</b> <span style="color:#888; font-size:12px; margin-left:10px;">${d.date}</span></div>
-                <button style="background:transparent; color:#e53935; padding:5px;" onclick="deleteDday('${d.id}')">삭제</button>
+                <button type="button" style="background:transparent; color:#e53935; padding:5px;" onclick="deleteDday('${d.id}')">삭제</button>
             `;
             listEl.appendChild(div);
         });
